@@ -1,0 +1,35 @@
+---
+title: SDKs
+description: Official Wede SDKs and client libraries
+---
+
+## Coming Soon
+
+Official SDKs for the following platforms are in development:
+
+- **JavaScript / TypeScript** — for Node.js and browser environments
+- **Python** — for backend integrations
+- **React Native** — for mobile field operator apps
+- **Swift** — for iOS field operator apps
+
+## In the meantime
+
+Use the REST API directly. All endpoints are documented in the [API Reference](/api-reference/introduction).
+
+```bash
+# Example: send an event with curl
+curl -X POST https://api.wede.pt/v1/events \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "EMERGENCY",
+    "priority": "critical",
+    "vertical": "healthcare",
+    "idempotency_key": "evt-001",
+    "payload": {}
+  }'
+```
+
+## Notify me
+
+Want to be notified when SDKs are available? Email [geral@wede.pt](mailto:geral@wede.pt).

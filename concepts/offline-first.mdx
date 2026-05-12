@@ -1,0 +1,24 @@
+---
+title: Offline-First Architecture
+description: How Wede ensures operational continuity without internet
+---
+
+## The Problem
+
+Mission-critical operations cannot stop when internet connectivity fails.
+
+## The Solution
+
+Wede uses a cascading fallback chain:
+
+- Internet (REST) — primary channel
+- SMS — first fallback
+- Voice — second fallback
+- Offline Token — last resort
+
+## Connectivity States
+
+- **online** — Full internet connectivity
+- **degraded** — Intermittent connectivity, fallback active
+- **sms\_only** — Internet unavailable, SMS operational
+- **offline** — All channels down, offline tokens active

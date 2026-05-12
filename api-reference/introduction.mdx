@@ -1,0 +1,35 @@
+---
+title: API Reference
+description: Complete reference for the Wede REST API
+---
+
+## Base URL
+## Authentication
+
+All API requests require authentication via API key or JWT token. See [Authentication](/authentication) for details.
+
+## Response Format
+
+All responses are JSON. Successful responses include the requested data. Error responses include:
+
+```json
+{
+  "error": "error_code",
+  "message": "Human-readable description",
+  "request_id": "req-abc123"
+}
+```
+
+## Rate Limiting
+
+Rate limits are applied per tenant per minute. Your plan determines your limit. Rate limit headers are included in every response:
+
+| Header | Description |
+|--------|-------------|
+| `x-ratelimit-limit` | Requests allowed per minute |
+| `x-ratelimit-remaining` | Remaining requests |
+| `x-ratelimit-reset` | UTC timestamp when limit resets |
+
+## Versioning
+
+The current API version is `v1`. All endpoints are prefixed with `/v1/`.

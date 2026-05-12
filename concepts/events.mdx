@@ -1,0 +1,36 @@
+---
+title: Events
+description: The core data unit in Wede
+---
+
+## What is an Event?
+
+An event is a structured data payload that Wede routes, delivers, and tracks across your operational network. Events are idempotent — sending the same event twice produces the same result.
+
+## Event Types
+
+| Type | Description |
+|------|-------------|
+| `EMERGENCY` | Emergency dispatch or alert |
+| `DISPATCH` | Field team dispatch |
+| `PAYMENT` | Payment transaction |
+| `BOOKING` | Booking or reservation |
+| `STATUS_UPDATE` | Status change notification |
+| `IDENTITY_CONFIRM` | Identity verification |
+
+## Priority Levels
+
+| Priority | Use case |
+|----------|----------|
+| `critical` | Life-safety, immediate response required |
+| `high` | Urgent operational event |
+| `normal` | Standard operational event |
+| `low` | Informational, non-urgent |
+
+## Idempotency
+
+Every event requires an `idempotency_key`. If you send the same key twice, Wede returns the original event without processing it again. Use a UUID or a unique business identifier.
+
+## Delivery
+
+Wede guarantees delivery across the fallback chain. Once an event is accepted (HTTP 202), it will be delivered — even if it takes minutes via SMS or voice.

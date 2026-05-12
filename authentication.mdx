@@ -1,0 +1,50 @@
+---
+title: Authentication
+description: How to authenticate with the Wede API
+---
+
+## API Key
+
+Every Wede tenant has an API key. You can find yours in [Settings](https://app.wede.pt/dashboard/settings).
+
+API keys have the format: `wede_live_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`
+
+## Using your API key
+
+### Direct authentication
+
+For most endpoints, pass your API key in the `x-wede-api-key` header:
+
+```bash
+curl https://api.wede.pt/v1/events \
+  -H "x-wede-api-key: wede_live_YOUR_KEY"
+```
+
+### JWT token
+
+Some endpoints require a JWT token. Exchange your API key for a token:
+
+```bash
+curl -X POST https://api.wede.pt/v1/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{"api_key": "wede_live_YOUR_KEY"}'
+```
+
+Use the token in the `Authorization` header:
+
+```bash
+curl https://api.wede.pt/v1/tenant/zones \
+  -H "Authorization: Bearer eyJ..."
+```
+
+JWT tokens expire after **1 hour**.
+
+## Security
+
+<Warning>
+  Never expose your API key in client-side code, public repositories, or logs.
+</Warning>
+
+- Store API keys in environment variables
+- Rotate keys regularly via the dashboard
+- Use the minimum required permissions

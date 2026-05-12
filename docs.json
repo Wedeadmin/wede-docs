@@ -1,0 +1,144 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Wede Technology",
+  "colors": {
+    "primary": "#F9500A",
+    "light": "#FF6B35",
+    "dark": "#C73D00"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Getting Started",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": [
+              "index",
+              "quickstart",
+              "authentication"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/offline-first",
+              "concepts/zones",
+              "concepts/events",
+              "concepts/connectivity"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Authentication",
+            "pages": [
+              "api-reference/auth/token"
+            ]
+          },
+          {
+            "group": "Events",
+            "pages": [
+              "api-reference/events/create",
+              "api-reference/events/list"
+            ]
+          },
+          {
+            "group": "Zones",
+            "pages": [
+              "api-reference/zones/list",
+              "api-reference/zones/create",
+              "api-reference/zones/update",
+              "api-reference/zones/delete"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "api-reference/webhooks/list",
+              "api-reference/webhooks/create",
+              "api-reference/webhooks/delete"
+            ]
+          },
+          {
+            "group": "Tenant",
+            "pages": [
+              "api-reference/tenant/me",
+              "api-reference/tenant/usage"
+            ]
+          },
+          {
+            "group": "Connectivity",
+            "pages": [
+              "api-reference/connectivity/status",
+              "api-reference/connectivity/report"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "SDKs",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "sdks/overview"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "API Status",
+          "href": "https://status.wede.pt",
+          "icon": "signal"
+        },
+        {
+          "anchor": "Dashboard",
+          "href": "https://app.wede.pt",
+          "icon": "gauge"
+        },
+        {
+          "anchor": "Support",
+          "href": "mailto:geral@wede.pt",
+          "icon": "envelope"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:geral@wede.pt"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://app.wede.pt"
+    }
+  },
+  "footer": {
+    "socials": {
+      "linkedin": "https://linkedin.com/company/wede-technology"
+    }
+  }
+}
