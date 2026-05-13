@@ -1,0 +1,32 @@
+---
+title: Get Token
+description: Exchange your API key for a JWT token
+---
+
+## Endpoint
+## Request
+
+```json
+{
+  "api_key": "wede_live_YOUR_API_KEY"
+}
+```
+
+## Response
+
+```json
+{
+  "token": "eyJ...",
+  "expires_at": "2026-05-12T10:36:18.223Z",
+  "tenant_id": "9eb65ffa-...",
+  "tenant_slug": "my-company"
+}
+```
+
+## Example
+
+```bash
+curl -X POST https://api.wede.pt/v1/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{"api_key": "wede_live_YOUR_KEY"}'
+```

@@ -1,0 +1,28 @@
+---
+title: List Webhooks
+description: Get all webhooks configured for your tenant
+---
+
+## Endpoint
+## Example
+
+```bash
+curl https://api.wede.pt/v1/webhooks \
+  -H "x-wede-api-key: wede_live_YOUR_KEY"
+```
+
+## Response
+
+```json
+{
+  "webhooks": [
+    {
+      "id": "wh-abc123",
+      "url": "https://yourapp.com/webhooks/wede",
+      "events": ["EMERGENCY"],
+      "created_at": "2026-05-01T00:00:00Z"
+    }
+  ],
+  "total": 1
+}
+```

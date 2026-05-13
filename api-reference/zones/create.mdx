@@ -1,0 +1,29 @@
+---
+title: Create Zone
+description: Add a new operational zone
+---
+
+## Endpoint
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| zone_code | string | Yes | Unique identifier (e.g. zone_london_central) |
+| name | string | Yes | Human-readable name |
+| country | string | Yes | ISO 3166-1 alpha-2 country code |
+| region | string | No | Sub-region name |
+| lat_center | number | No | Latitude |
+| lng_center | number | No | Longitude |
+
+## Example
+
+```bash
+curl -X POST https://api.wede.pt/v1/tenant/zones \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "zone_code": "zone_london_central",
+    "name": "London Central",
+    "country": "GB"
+  }'
+```

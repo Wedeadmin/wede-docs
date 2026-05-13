@@ -1,0 +1,20 @@
+---
+title: Usage Metrics
+description: Get consumption metrics for your tenant
+---
+
+## Endpoint
+## Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| from | datetime | Yes | Start of period (ISO 8601) |
+| to | datetime | Yes | End of period (ISO 8601) |
+| granularity | string | No | hour, day, week, month (default: day) |
+
+## Example
+
+```bash
+curl "https://api.wede.pt/v1/tenant/usage?from=2026-05-01T00:00:00Z&to=2026-05-13T00:00:00Z" \
+  -H "x-wede-api-key: wede_live_YOUR_KEY"
+```

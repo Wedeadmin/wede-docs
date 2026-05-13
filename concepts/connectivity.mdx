@@ -1,0 +1,21 @@
+---
+title: Connectivity
+description: How Wede manages connectivity across channels
+---
+
+## Fallback Chain
+
+Wede automatically manages the fallback chain for each zone:
+
+1. **Internet (REST)** — primary channel, full bandwidth
+2. **SMS** — structured data over SMS, compressed payloads
+3. **Voice** — DTMF-encoded data over voice calls
+4. **Offline Token** — cryptographically signed local tokens
+
+## Automatic Switching
+
+When Wede detects degradation in the primary channel, it switches to the next available channel automatically. Your integration does not need to handle this — Wede manages it transparently.
+
+## Monitoring
+
+Monitor connectivity state in real-time via the [dashboard](https://app.wede.pt/dashboard/zones) or subscribe to connectivity webhooks.

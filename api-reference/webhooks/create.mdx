@@ -1,0 +1,24 @@
+---
+title: Create Webhook
+description: Register a new webhook endpoint
+---
+
+## Endpoint
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| url | string | Yes | HTTPS endpoint to receive events |
+| events | array | No | Event types to subscribe (empty = all) |
+
+## Example
+
+```bash
+curl -X POST https://api.wede.pt/v1/webhooks \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://yourapp.com/webhooks/wede",
+    "events": ["EMERGENCY", "DISPATCH"]
+  }'
+```

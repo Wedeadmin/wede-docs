@@ -1,0 +1,31 @@
+---
+title: List Events
+description: Retrieve events for your tenant
+---
+
+## Endpoint
+## Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| limit | integer | Number of events (default 50, max 200) |
+| status | string | Filter by status |
+| priority | string | Filter by priority |
+| vertical | string | Filter by vertical |
+
+## Example
+
+```bash
+curl "https://api.wede.pt/v1/events?limit=25&priority=critical" \
+  -H "x-wede-api-key: wede_live_YOUR_KEY"
+```
+
+## Response
+
+```json
+{
+  "data": [],
+  "total_count": 142,
+  "limit": 25
+}
+```

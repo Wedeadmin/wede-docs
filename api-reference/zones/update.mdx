@@ -1,0 +1,14 @@
+---
+title: Update Zone
+description: Update zone configuration or connectivity state
+---
+
+## Endpoint
+## Example
+
+```bash
+curl -X PATCH https://api.wede.pt/v1/tenant/zones/zone_lisbon_central \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"connectivity_state": "degraded"}'
+```

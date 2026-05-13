@@ -1,0 +1,26 @@
+---
+title: Report Connectivity
+description: Report a connectivity state change for a zone
+---
+
+## Endpoint
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| zone_id | string | Yes | Zone code |
+| state | string | Yes | New connectivity state |
+| detected_at | datetime | Yes | When the change was detected |
+
+## Example
+
+```bash
+curl -X POST https://api.wede.pt/v1/connectivity/report \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "zone_id": "zone_lisbon_central",
+    "state": "degraded",
+    "detected_at": "2026-05-13T09:00:00Z"
+  }'
+```

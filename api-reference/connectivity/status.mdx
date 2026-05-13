@@ -1,0 +1,29 @@
+---
+title: Connectivity Status
+description: Get current connectivity status for all zones
+---
+
+## Endpoint
+## Example
+
+```bash
+curl https://api.wede.pt/v1/connectivity/status \
+  -H "x-wede-api-key: wede_live_YOUR_KEY"
+```
+
+## Response
+
+```json
+{
+  "zones": [
+    {
+      "zone_code": "zone_lisbon_central",
+      "state": "online",
+      "fallback_channel": "none",
+      "incident_active": false,
+      "last_updated": "2026-05-13T09:00:00Z"
+    }
+  ],
+  "as_of": "2026-05-13T09:00:00Z"
+}
+```

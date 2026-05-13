@@ -1,0 +1,41 @@
+---
+title: Create Event
+description: Send a new event into the Wede platform
+---
+
+## Endpoint
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| type | string | Yes | Event type |
+| priority | string | Yes | critical, high, normal, low |
+| vertical | string | Yes | healthcare, banking, logistics |
+| idempotency_key | string | Yes | Unique key to prevent duplicates |
+| payload | object | No | Opaque payload |
+
+## Example
+
+```bash
+curl -X POST https://api.wede.pt/v1/events \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "EMERGENCY",
+    "priority": "critical",
+    "vertical": "healthcare",
+    "idempotency_key": "evt-001",
+    "payload": {"patient_id": "PT-001"}
+  }'
+```
+
+## Response
+
+```json
+{
+  "event_id": "0ee3dfbe-...",
+  "status": "pending",
+  "channel_selected": "rest_full",
+  "created_at": "2026-05-12T10:00:00Z"
+}
+```

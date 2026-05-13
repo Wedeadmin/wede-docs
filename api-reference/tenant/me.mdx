@@ -1,0 +1,28 @@
+---
+title: Tenant Profile
+description: Get your tenant configuration
+---
+
+## Endpoint
+## Example
+
+```bash
+curl https://api.wede.pt/v1/tenant/me \
+  -H "x-wede-api-key: wede_live_YOUR_KEY"
+```
+
+## Response
+
+```json
+{
+  "id": "9eb65ffa-...",
+  "name": "My Company",
+  "slug": "my-company",
+  "license_type": "saas_api",
+  "status": "active",
+  "feature_flags": {
+    "emergency_dispatch": true,
+    "sms_fallback": true
+  }
+}
+```

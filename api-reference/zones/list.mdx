@@ -1,0 +1,29 @@
+---
+title: List Zones
+description: Get all zones configured for your tenant
+---
+
+## Endpoint
+## Example
+
+```bash
+curl https://api.wede.pt/v1/tenant/zones \
+  -H "x-wede-api-key: wede_live_YOUR_KEY"
+```
+
+## Response
+
+```json
+{
+  "zones": [
+    {
+      "zone_code": "zone_lisbon_central",
+      "name": "Lisboa Central",
+      "country": "PT",
+      "connectivity_state": "online",
+      "incident_active": false
+    }
+  ],
+  "total": 10
+}
+```
