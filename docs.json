@@ -120,8 +120,8 @@
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/logo_wede_tech_black.png",
+    "dark": "/logo/logo_wede_tech_white.png"
   },
   "navbar": {
     "links": [
