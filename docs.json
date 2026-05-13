@@ -27,7 +27,9 @@
               "concepts/offline-first",
               "concepts/zones",
               "concepts/events",
-              "concepts/connectivity"
+              "concepts/connectivity",
+              "concepts/verticals",
+              "concepts/security"
             ]
           }
         ]

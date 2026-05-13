@@ -1,0 +1,40 @@
+---
+title: Security & Compliance
+description: How Wede protects your data and meets regulatory requirements
+---
+
+## Data Privacy
+
+Wede operates on a strict data opacity principle: **your payload is yours**. Wede transports events but never reads, stores, or processes the contents of your payload. You control encryption at the application layer.
+
+## Encryption
+
+All communication between your systems and the Wede platform is encrypted in transit using TLS 1.3. API keys and tokens are never logged.
+
+## Access Control
+
+Wede uses a role-based access control system with nine permission levels — from global platform administrators to field operators. Every action is logged in an immutable audit trail.
+
+| Role | Description |
+|------|-------------|
+| Company Admin | Full control over your tenant |
+| Company Tech | API keys, webhooks, technical integration |
+| Operational Supervisor | Event monitoring and dispatch |
+| Field Operator | Receive and execute dispatched events |
+| Corporate Client | Read-only access to reports and events |
+
+## Audit Trail
+
+Every action taken on the Wede platform is recorded in an immutable audit log — who did what, when, and from where. Audit logs are available via the dashboard and API.
+
+## Data Residency
+
+Data residency is configurable per zone. Events processed in Portugal stay in Portugal. Events processed in the UAE stay in the UAE. Wede never moves sensitive data across borders without explicit configuration.
+
+## Compliance
+
+Wede is designed for regulated industries including healthcare (HIPAA-aligned), financial services (PCI-DSS aligned), and government. Compliance documentation is available on request.
+
+## Responsible Disclosure
+
+Security vulnerabilities can be reported to security@wede.pt. We are committed to responding within 24 hours.

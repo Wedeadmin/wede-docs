@@ -3,22 +3,43 @@ title: Offline-First Architecture
 description: How Wede ensures operational continuity without internet
 ---
 
-## The Problem
+## What Offline-First Means
 
-Mission-critical operations cannot stop when internet connectivity fails.
+Most platforms assume internet connectivity. They are built for the best case. When connectivity fails, they fail too.
 
-## The Solution
+Wede is built for the worst case. Every feature, every integration, every delivery guarantee is designed to work without internet — and to work better when internet is available.
 
-Wede uses a cascading fallback chain:
+This is what offline-first means: not a fallback mode, but the default architecture.
 
-- Internet (REST) — primary channel
-- SMS — first fallback
-- Voice — second fallback
-- Offline Token — last resort
+## Delivery Channels
+
+Wede maintains multiple delivery channels for every operational zone. When the primary channel degrades, the next channel activates automatically.
+
+The channel hierarchy is managed by Wede based on zone configuration and real-time connectivity monitoring. Your integration does not change — Wede routes transparently.
 
 ## Connectivity States
 
-- **online** — Full internet connectivity
-- **degraded** — Intermittent connectivity, fallback active
-- **sms\_only** — Internet unavailable, SMS operational
-- **offline** — All channels down, offline tokens active
+Each zone has an independent connectivity state:
+
+| State | Meaning |
+|-------|---------|
+| **Online** | Full connectivity, primary channel active |
+| **Degraded** | Reduced connectivity, optimised routing active |
+| **SMS Only** | Internet unavailable, alternative channels active |
+| **Offline** | All external channels unavailable, local continuity active |
+
+Zone states are monitored in real-time and visible in your [dashboard](https://app.wede.pt/dashboard/zones).
+
+## Data Integrity
+
+Every event sent to Wede has an `idempotency_key`. This guarantees that even if the same event is sent multiple times — due to network retries or reconnection — it is processed exactly once.
+
+When connectivity is restored after an offline period, events are synchronised in order, with conflict resolution handled automatically.
+
+## Security
+
+All communication is encrypted in transit. Payloads are opaque to Wede — we transport your data but never read or store its contents. You control encryption at the application layer.
+
+## Compliance
+
+Wede is designed for regulated industries. Data residency is configurable per zone. All operations are logged in an immutable audit trail. Access is controlled by role-based permissions with full audit visibility.

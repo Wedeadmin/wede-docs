@@ -1,21 +1,56 @@
 ---
 title: Wede Technology
-description: Offline-First Resilience Platform for mission-critical operations
+description: Operational continuity platform for mission-critical services — works without internet
 ---
 
-## What is Wede?
+## The Problem
 
-Wede is an **offline-first resilience platform** that ensures your mission-critical operations continue even when internet connectivity degrades or fails completely.
+Every day, critical operations fail because of internet connectivity. Emergency dispatch loses contact with field teams. Hospital systems go offline during power outages. Banking terminals stop working when the network drops.
 
-Built for healthcare, banking, logistics, and emergency services.
+The world depends on connectivity — but connectivity is not guaranteed.
 
-## Quick Start
+## The Solution
 
-1. Get your API key from [app.wede.pt](https://app.wede.pt/dashboard/settings)
-2. Authenticate via `/v1/auth/token`
-3. Send events via `/v1/events`
-4. Monitor in real-time in your dashboard
+Wede is an **operational continuity platform** that keeps mission-critical services running regardless of internet availability.
+
+When connectivity degrades, Wede switches automatically to the next available channel — transparently, without any changes to your integration, without interrupting your operations.
+
+Your teams keep working. Your systems keep running.
+
+## Who Uses Wede
+
+Wede is built for organisations where downtime is not an option:
+
+- **Healthcare** — emergency dispatch, patient monitoring, field medical teams
+- **Banking & Financial Services** — payment terminals, ATM networks, field agents
+- **Logistics & Delivery** — last-mile coordination, fleet management, warehouse operations
+- **Emergency Services** — civil protection, fire brigades, search and rescue
+- **Government & Public Services** — critical infrastructure, border control, utilities
+
+## How It Works
+
+Wede integrates with your existing systems via a simple REST API. You send events — Wede ensures they are delivered.
+
+Behind the scenes, Wede monitors connectivity across your operational zones and routes each event through the best available channel. If internet is unavailable, delivery continues through alternative channels until connectivity is restored.
+
+Your integration stays the same. Wede handles the rest.
+
+## Get Started
+
+```bash
+curl -X POST https://api.wede.pt/v1/events \
+  -H "x-wede-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "EMERGENCY",
+    "priority": "critical",
+    "vertical": "healthcare",
+    "idempotency_key": "evt-001",
+    "payload": {}
+  }'
+```
+
+[Get your API key](https://app.wede.pt) · [Read the Quickstart](/quickstart) · [API Reference](/api-reference/introduction)
 
 ## Base URL
-
-All API requests go to `https://api.wede.pt`
+All API requests are made over HTTPS. The platform is hosted in Europe with global reach.
