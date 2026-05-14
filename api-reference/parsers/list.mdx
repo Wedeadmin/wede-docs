@@ -1,0 +1,73 @@
+---
+title: List Parsers
+description: Returns all parsers configured for the authenticated tenant
+---
+
+## Endpoint
+## Authentication
+
+Requires a valid API key with `parsers:read` permission. Not accessible to `wede_global_admin` or `wede_tech_ops` — parser content is tenant-scoped and legally protected.
+
+## Response
+
+```json
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| vertical | string | Yes | Target vertical (e.g. `healthcare`, `banking`) |
+| name | string | Yes | Human-readable name |
+| description | string | No | Optional description |
+| schema | array | Yes | Array of field definitions |
+
+Each field in `schema`:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| id | string | Yes | Unique field identifier |
+| name | string | Yes | Field name |
+| sms_code | string | Yes | Short code for SMS encoding (max 8 chars) |
+| type | string | Yes | `string`, `number`, `boolean`, `gps`, `text`, `timestamp`, `enum`, `phone`, `email`, `address`, `hardware_id` |
+| required | boolean | Yes | Whether the field is mandatory |
+| enabled | boolean | Yes | Whether the field is active |
+| offline_capable | boolean | Yes | Whether the field is transmitted offline |
+| section | string | Yes | `core`, `location`, `human`, `hardware`, `team`, `custom` |
+| max_bytes | number | Yes | Maximum bytes for SMS encoding (1–160) |
+| enum_values | array | No | Required when type is `enum` |
+
+## Example
+
+```bash
+curl -X POST https://api.wede.pt/v1/parsers \
+  -H "X-Wede-API-Key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "vertical": "logistics",
+    "name": "Logistics v1",
+    "schema": [
+      {
+        "id": "lg_eid",
+        "name": "event_id",
+        "sms_code": "eid",
+        "type": "string",
+        "required": true,
+        "enabled": true,
+        "offline_capable": true,
+        "section": "core",
+        "max_bytes": 12
+      }
+    ]
+  }'
+```
+
+## Response
+
+```json
+{
+  "id": "parser-lg-001",
+  "vertical": "logistics",
+  "version": 1,
+  "is_active": true,
+  "created_at": "2026-05-14T21:00:00Z"
+}
+```

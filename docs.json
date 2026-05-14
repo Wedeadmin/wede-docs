@@ -86,6 +86,20 @@
               "api-reference/connectivity/status",
               "api-reference/connectivity/report"
             ]
+          },
+          {
+            "group": "Parsers",
+            "pages": [
+              "api-reference/parsers/list",
+              "api-reference/parsers/create"
+            ]
+          },
+          {
+            "group": "Teams & Dispatch",
+            "pages": [
+              "api-reference/teams/list",
+              "api-reference/teams/dispatch"
+            ]
           }
         ]
       },

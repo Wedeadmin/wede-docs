@@ -1,0 +1,45 @@
+---
+title: Dispatch Team
+description: Assign a team to an event
+---
+
+## Endpoint
+## Authentication
+
+Requires `dispatch:assign` permission.
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| event_id | string | Yes | ID of the event to assign |
+| team_id | string (UUID) | Yes | ID of the team to dispatch |
+| notes | string | No | Optional dispatch notes |
+
+## Example
+
+```bash
+curl -X POST https://api.wede.pt/v1/teams/dispatch \
+  -H "X-Wede-API-Key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_id": "evt-001",
+    "team_id": "00000000-0000-0000-0000-000000000001",
+    "notes": "Closest available unit"
+  }'
+```
+
+## Response
+
+```json
+{
+  "id": "...",
+  "event_id": "evt-001",
+  "team_id": "...",
+  "dispatched_at": "2026-05-14T21:00:00Z"
+}
+```
+
+<Note>
+Dispatching a team automatically sets its status to `on_mission`.
+</Note>
