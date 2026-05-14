@@ -1,0 +1,49 @@
+---
+title: Zones
+description: How Wede organises operational coverage by geographic zone
+---
+
+## What is a Zone
+
+A zone is a geographic operational area managed independently by Wede. Each zone has its own connectivity state, channel configuration, and incident tracking.
+
+Zones allow you to model the real-world structure of your operations — a hospital, a city district, a country region, or an entire country — and monitor each area independently.
+
+## Zone Connectivity States
+
+Each zone operates in one of four connectivity states:
+
+| State | Meaning |
+|-------|---------|
+| **online** | Full internet connectivity — primary channel active |
+| **degraded** | Reduced connectivity — optimised routing active |
+| **sms_only** | Internet unavailable — SMS and alternative channels active |
+| **offline** | All external channels unavailable — local continuity active |
+
+State transitions are detected automatically by Wede based on real-time monitoring. Your integration does not need to handle state changes — Wede routes transparently.
+
+## Zone Configuration
+
+Each zone has:
+
+- **Zone code** — unique identifier (e.g. `zone_hospital_evora`)
+- **Name** — human-readable label
+- **Country and region** — geographic scope
+- **GPS coordinates** — centre point for proximity calculations
+- **Active verticals** — which industry modules are active in this zone
+- **Connectivity state** — current operational status
+
+## Managing Zones
+
+Zones are managed in the [Dashboard](https://app.wede.pt/dashboard/zones) or via the API.
+
+```bash
+curl https://api.wede.pt/v1/zones \
+  -H "X-Wede-API-Key: wede_live_YOUR_KEY"
+```
+
+## Incidents
+
+A zone can have an active incident flag. When an incident is active, Wede prioritises delivery through all available channels and alerts configured webhooks.
+
+Incident state is visible in real-time in the dashboard and included in all zone API responses.
