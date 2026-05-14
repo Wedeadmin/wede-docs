@@ -137,7 +137,7 @@
   },
   "logo": {
     "light": "/logo/logo_wede_tech_black.png",
-    "dark": "/logo/logo_wede_tech.png"
+    "dark": "/logo/logo_wede_tech_white.png"
   },
   "navbar": {
     "links": [
@@ -154,7 +154,13 @@
   },
   "footer": {
     "socials": {
-      "linkedin": "https://linkedin.com/company/wede-technology"
+      "linkedin": "https://www.linkedin.com/company/wedetechnology",
+      "website": "https://wede.pt"
     }
+  },
+  "metadata": {
+    "og:image": "https://docs.wede.pt/images/hero-dark.png",
+    "og:site_name": "Wede Technology Docs",
+    "twitter:card": "summary_large_image"
   }
 }
