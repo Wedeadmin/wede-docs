@@ -137,7 +137,8 @@
   },
   "logo": {
     "light": "/logo/logo_wede_tech_black.png",
-    "dark": "/logo/logo_wede_tech_white.png"
+    "dark": "/logo/logo_wede_tech_white.png",
+    "size": "large"
   },
   "navbar": {
     "links": [
