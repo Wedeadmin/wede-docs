@@ -1,35 +1,83 @@
 ---
 title: API Reference
-description: Complete reference for the Wede REST API
+description: Complete reference for the Wede REST API — offline-first event delivery
 ---
 
 ## Base URL
+
+All API requests are made to:
+All endpoints are prefixed with `/v1/`. The API is hosted in Europe (GCP europe-west1) with global reach via Cloudflare.
+
 ## Authentication
 
-All API requests require authentication via API key or JWT token. See [Authentication](/authentication) for details.
+All requests require authentication. Wede supports two methods:
+
+**API Key** — for server-to-server integrations:
+```bash
+curl https://api.wede.pt/v1/events \
+  -H "X-Wede-API-Key: wede_live_YOUR_KEY"
+```
+
+**JWT Token** — for user sessions (obtained via `/v1/auth/login`):
+```bash
+curl https://api.wede.pt/v1/events \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+Your API key is available in the [Dashboard](https://app.wede.pt/dashboard/settings).
 
 ## Response Format
 
-All responses are JSON. Successful responses include the requested data. Error responses include:
+All responses are JSON. Every response includes a `request_id` for support tracing.
 
+**Success:**
 ```json
 {
-  "error": "error_code",
-  "message": "Human-readable description",
+  "event_id": "0ee3dfbe-...",
+  "status": "pending",
+  "channel_selected": "rest_full"
+}
+```
+
+**Error:**
+```json
+{
+  "error": "validation_error",
+  "message": "Field 'priority' is required",
   "request_id": "req-abc123"
 }
 ```
 
 ## Rate Limiting
 
-Rate limits are applied per tenant per minute. Your plan determines your limit. Rate limit headers are included in every response:
+Rate limits are applied per tenant per minute based on your plan:
+
+| Plan | Limit |
+|------|-------|
+| Starter | 500 req/min |
+| Core | 1,000 req/min |
+| Mission-Critical | Unlimited |
+
+Rate limit headers are included in every response:
 
 | Header | Description |
 |--------|-------------|
 | `x-ratelimit-limit` | Requests allowed per minute |
-| `x-ratelimit-remaining` | Remaining requests |
+| `x-ratelimit-remaining` | Remaining requests this window |
 | `x-ratelimit-reset` | UTC timestamp when limit resets |
 
-## Versioning
+## Idempotency
 
-The current API version is `v1`. All endpoints are prefixed with `/v1/`.
+All write operations accept an `idempotency_key`. Use this to safely retry requests without creating duplicates — Wede guarantees exactly-once delivery per key.
+
+## Offline Behaviour
+
+When connectivity is unavailable, Wede automatically queues events and delivers them when connectivity is restored. The `channel_selected` field in the response indicates the delivery path used:
+
+| Channel | Meaning |
+|---------|---------|
+| `rest_full` | Delivered via HTTPS |
+| `sms` | Delivered via SMS fallback |
+| `queued_offline` | Queued for delivery on reconnection |
+
+Your integration does not need to handle channel selection — Wede routes transparently.

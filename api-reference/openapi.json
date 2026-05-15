@@ -1,94 +1,164 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+    "title": "Wede Technology API",
+    "description": "Operational continuity platform — offline-first event delivery for mission-critical services",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Wede Technology",
+      "email": "geral@wede.pt",
+      "url": "https://wede.pt"
+    }
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "https://api.wede.pt",
+      "description": "Production"
     }
   ],
   "security": [
-    {
-      "bearerAuth": []
-    }
+    { "ApiKeyAuth": [] }
   ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Wede-API-Key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Event": {
+        "type": "object",
+        "properties": {
+          "event_id": { "type": "string", "format": "uuid" },
+          "type": { "type": "string", "example": "EMERGENCY" },
+          "priority": { "type": "string", "enum": ["critical", "high", "normal", "low"] },
+          "vertical": { "type": "string", "enum": ["healthcare", "banking", "logistics", "emergency", "gov", "telecom"] },
+          "status": { "type": "string", "enum": ["pending", "delivered", "failed", "queued_offline"] },
+          "channel_selected": { "type": "string", "enum": ["rest_full", "sms", "queued_offline"] },
+          "idempotency_key": { "type": "string" },
+          "payload": { "type": "object" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Zone": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "zone_code": { "type": "string", "example": "zone_lisbon_pt" },
+          "name": { "type": "string", "example": "Lisboa" },
+          "country": { "type": "string", "example": "PT" },
+          "region": { "type": "string" },
+          "connectivity_state": { "type": "string", "enum": ["online", "degraded", "sms_only", "offline"] },
+          "incident_active": { "type": "boolean" },
+          "verticals_active": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "Webhook": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "url": { "type": "string", "format": "uri" },
+          "events": { "type": "array", "items": { "type": "string" } },
+          "is_active": { "type": "boolean" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "message": { "type": "string" },
+          "request_id": { "type": "string" }
+        }
+      }
+    }
+  },
   "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
+    "/v1/events": {
+      "post": {
+        "summary": "Create Event",
+        "description": "Submit a new event for delivery. Wede selects the best available channel automatically.",
+        "operationId": "createEvent",
+        "tags": ["Events"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["type", "priority", "vertical", "idempotency_key"],
+                "properties": {
+                  "type": { "type": "string", "example": "EMERGENCY" },
+                  "priority": { "type": "string", "enum": ["critical", "high", "normal", "low"] },
+                  "vertical": { "type": "string", "enum": ["healthcare", "banking", "logistics", "emergency", "gov", "telecom"] },
+                  "idempotency_key": { "type": "string", "example": "evt-001" },
+                  "payload": { "type": "object" }
+                }
+              }
             }
           }
+        },
+        "responses": {
+          "202": {
+            "description": "Event accepted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Event" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "429": { "description": "Rate limit exceeded" }
+        }
+      },
+      "get": {
+        "summary": "List Events",
+        "operationId": "listEvents",
+        "tags": ["Events"],
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "default": 0 } },
+          { "name": "status", "in": "query", "schema": { "type": "string" } }
         ],
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "List of events",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Event" } },
+                    "total": { "type": "integer" }
                   }
                 }
               }
             }
-          },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
           }
         }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
+      }
+    },
+    "/v1/zones": {
+      "get": {
+        "summary": "List Zones",
+        "operationId": "listZones",
+        "tags": ["Zones"],
         "responses": {
           "200": {
-            "description": "plant response",
+            "description": "List of operational zones",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "properties": {
+                    "zones": { "type": "array", "items": { "$ref": "#/components/schemas/Zone" } }
+                  }
                 }
               }
             }
@@ -96,121 +166,94 @@
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
+    "/v1/webhooks": {
+      "get": {
+        "summary": "List Webhooks",
+        "operationId": "listWebhooks",
+        "tags": ["Webhooks"],
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
+          "200": { "description": "List of webhooks" }
         }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
+      },
       "post": {
-        "description": "Information about a new plant added to the store",
+        "summary": "Create Webhook",
+        "operationId": "createWebhook",
+        "tags": ["Webhooks"],
         "requestBody": {
-          "description": "Plant added to the store",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "type": "object",
+                "required": ["url", "events"],
+                "properties": {
+                  "url": { "type": "string", "format": "uri" },
+                  "events": { "type": "array", "items": { "type": "string" }, "example": ["event.delivered", "zone.state_changed"] }
+                }
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          }
+          "201": { "description": "Webhook created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Webhook" } } } }
         }
       }
     },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
+    "/v1/tenant/me": {
+      "get": {
+        "summary": "Get Tenant",
+        "operationId": "getTenant",
+        "tags": ["Tenant"],
+        "responses": {
+          "200": { "description": "Tenant details" }
+        }
+      }
+    },
+    "/v1/tenant/usage": {
+      "get": {
+        "summary": "Get Usage",
+        "operationId": "getUsage",
+        "tags": ["Tenant"],
+        "responses": {
+          "200": { "description": "Usage statistics for current billing period" }
+        }
+      }
+    },
+    "/v1/connectivity/status": {
+      "get": {
+        "summary": "Get Connectivity Status",
+        "operationId": "getConnectivity",
+        "tags": ["Connectivity"],
+        "responses": {
+          "200": { "description": "Current connectivity state per zone" }
+        }
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "summary": "Login",
+        "operationId": "login",
+        "tags": ["Authentication"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "JWT token issued" },
+          "401": { "description": "Invalid credentials" }
+        }
       }
     }
   }
