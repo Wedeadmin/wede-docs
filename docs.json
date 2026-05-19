@@ -29,7 +29,8 @@
               "concepts/events",
               "concepts/connectivity",
               "concepts/verticals",
-              "concepts/security"
+              "concepts/security",
+              "concepts/parsers"
             ]
           }
         ]
@@ -91,7 +92,8 @@
             "group": "Parsers",
             "pages": [
               "api-reference/parsers/list",
-              "api-reference/parsers/create"
+              "api-reference/parsers/create",
+              "api-reference/parsers/update"
             ]
           },
           {

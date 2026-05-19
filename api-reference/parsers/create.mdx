@@ -1,0 +1,41 @@
+---
+title: Create Parser
+description: Creates a new parser for a vertical. A new version is automatically assigned.
+---
+
+## Endpoint
+
+POST /v1/parsers
+
+## Authentication
+
+Requires `parsers:write` permission.
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `vertical` | string | Yes | Target vertical: `healthcare`, `banking`, `emergency`, `logistics`, `telecom`, `gov` |
+| `name` | string | Yes | Human-readable name |
+| `description` | string | No | Optional description |
+| `schema` | array | Yes | Array of field definitions (max 50) |
+
+### Field definition
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | string | Yes | Unique field identifier |
+| `name` | string | Yes | Field name |
+| `sms_code` | string | Yes | Short code for SMS encoding (max 8 chars) |
+| `type` | string | Yes | string, number, boolean, gps, text, timestamp, enum, phone, email, address, hardware_id |
+| `required` | boolean | Yes | Whether the field is mandatory |
+| `enabled` | boolean | Yes | Whether the field is active |
+| `offline_capable` | boolean | Yes | Whether the field is transmitted offline via SMS |
+| `section` | string | Yes | core, location, human, hardware, team, custom |
+| `max_bytes` | number | Yes | Maximum bytes for SMS encoding (1-160) |
+| `enum_values` | array | No | Required when type is enum |
+| `legal` | boolean | No | Marks the field as containing PII |
+
+## Response
+
+Returns the created parser with id, version and created_at.

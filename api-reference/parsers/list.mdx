@@ -1,45 +1,63 @@
 ---
 title: List Parsers
-description: Returns all parsers configured for the authenticated tenant
+description: Returns all parsers configured for the authenticated tenant and vertical
 ---
 
 ## Endpoint
 ## Authentication
 
-Requires a valid API key with `parsers:read` permission. Not accessible to `wede_global_admin` or `wede_tech_ops` — parser content is tenant-scoped and legally protected.
+Requires a valid JWT or API key with `parsers:read` permission.
+
+| Role | Access |
+|------|--------|
+| `wede_global_admin`, `wede_tech_ops` | All parsers across all tenants |
+| `country_admin` | Parsers for tenants in assigned countries |
+| `company_admin`, `company_tech`, `operational_supervisor`, `corporate_client` | Own tenant parsers only |
 
 ## Response
 
 ```json
+cat > ~/Dev/wede/wede-docs/api-reference/parsers/create.mdx << 'EOF'
+---
+title: Create Parser
+description: Creates a new parser for a vertical. A new version is automatically assigned.
+---
+
+## Endpoint
+## Authentication
+
+Requires `parsers:write` permission.
+
 ## Request Body
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| vertical | string | Yes | Target vertical (e.g. `healthcare`, `banking`) |
-| name | string | Yes | Human-readable name |
-| description | string | No | Optional description |
-| schema | array | Yes | Array of field definitions |
+| `vertical` | string | Yes | Target vertical: `healthcare`, `banking`, `emergency`, `logistics`, `telecom`, `gov` |
+| `name` | string | Yes | Human-readable name |
+| `description` | string | No | Optional description |
+| `schema` | array | Yes | Array of field definitions (max 50) |
 
-Each field in `schema`:
+### Field definition
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| id | string | Yes | Unique field identifier |
-| name | string | Yes | Field name |
-| sms_code | string | Yes | Short code for SMS encoding (max 8 chars) |
-| type | string | Yes | `string`, `number`, `boolean`, `gps`, `text`, `timestamp`, `enum`, `phone`, `email`, `address`, `hardware_id` |
-| required | boolean | Yes | Whether the field is mandatory |
-| enabled | boolean | Yes | Whether the field is active |
-| offline_capable | boolean | Yes | Whether the field is transmitted offline |
-| section | string | Yes | `core`, `location`, `human`, `hardware`, `team`, `custom` |
-| max_bytes | number | Yes | Maximum bytes for SMS encoding (1–160) |
-| enum_values | array | No | Required when type is `enum` |
+| `id` | string | Yes | Unique field identifier |
+| `name` | string | Yes | Field name |
+| `sms_code` | string | Yes | Short code for SMS encoding (max 8 chars) |
+| `type` | string | Yes | `string`, `number`, `boolean`, `gps`, `text`, `timestamp`, `enum`, `phone`, `email`, `address`, `hardware_id` |
+| `required` | boolean | Yes | Whether the field is mandatory |
+| `enabled` | boolean | Yes | Whether the field is active |
+| `offline_capable` | boolean | Yes | Whether the field is transmitted offline via SMS |
+| `section` | string | Yes | `core`, `location`, `human`, `hardware`, `team`, `custom` |
+| `max_bytes` | number | Yes | Maximum bytes for SMS encoding (1–160) |
+| `enum_values` | array | No | Required when type is `enum` |
+| `legal` | boolean | No | Marks the field as containing PII — logged in audit trail |
 
 ## Example
 
 ```bash
 curl -X POST https://api.wede.pt/v1/parsers \
-  -H "X-Wede-API-Key: wede_live_YOUR_KEY" \
+  -H "Authorization: Bearer YOUR_JWT" \
   -H "Content-Type: application/json" \
   -d '{
     "vertical": "logistics",
@@ -55,6 +73,28 @@ curl -X POST https://api.wede.pt/v1/parsers \
         "offline_capable": true,
         "section": "core",
         "max_bytes": 12
+      },
+      {
+        "id": "lg_sid",
+        "name": "shipment_id",
+        "sms_code": "sid",
+        "type": "string",
+        "required": true,
+        "enabled": true,
+        "offline_capable": true,
+        "section": "core",
+        "max_bytes": 16
+      },
+      {
+        "id": "lg_gps",
+        "name": "current_gps",
+        "sms_code": "gps",
+        "type": "gps",
+        "required": true,
+        "enabled": true,
+        "offline_capable": true,
+        "section": "location",
+        "max_bytes": 18
       }
     ]
   }'
@@ -64,10 +104,12 @@ curl -X POST https://api.wede.pt/v1/parsers \
 
 ```json
 {
-  "id": "parser-lg-001",
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "tenant_id": "tenant-uuid",
   "vertical": "logistics",
   "version": 1,
+  "name": "Logistics v1",
   "is_active": true,
-  "created_at": "2026-05-14T21:00:00Z"
+  "created_at": "2026-05-19T14:00:00Z"
 }
 ```

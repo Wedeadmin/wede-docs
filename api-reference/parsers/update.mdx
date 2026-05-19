@@ -1,0 +1,64 @@
+---
+title: Update Parser
+description: Updates an existing parser — schema, name, description or active status
+---
+
+## Endpoint
+## Authentication
+
+Requires `parsers:write` permission.
+
+## Path Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `id` | Parser UUID |
+
+## Request Body
+
+All fields are optional. Only provided fields are updated.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Human-readable name |
+| `description` | string | Optional description |
+| `schema` | array | Full updated field definitions |
+| `is_active` | boolean | Activate or deactivate this parser version |
+
+When `is_active` is set to `true`, all other versions of the same vertical are automatically deactivated.
+
+## Example
+
+```bash
+curl -X PATCH https://api.wede.pt/v1/parsers/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Authorization: Bearer YOUR_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "schema": [
+      {
+        "id": "lg_eid",
+        "name": "event_id",
+        "sms_code": "eid",
+        "type": "string",
+        "required": true,
+        "enabled": true,
+        "offline_capable": true,
+        "section": "core",
+        "max_bytes": 12
+      }
+    ],
+    "is_active": true
+  }'
+```
+
+## Response
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "vertical": "logistics",
+  "version": 1,
+  "is_active": true,
+  "updated_at": "2026-05-19T15:00:00Z"
+}
+```

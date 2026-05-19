@@ -1,0 +1,89 @@
+---
+title: Parsers
+description: Configure how event data is structured, encoded and transmitted across channels — including offline via SMS
+---
+
+## What is a Parser?
+
+A parser defines the data structure for events in a specific vertical. It controls which fields are collected, how they are encoded for transmission, and whether they can be sent offline via SMS when internet connectivity is unavailable.
+
+Each parser belongs to a tenant and is scoped to a vertical — `healthcare`, `banking`, `emergency`, `logistics`, `telecom`, or `gov`. A tenant can have multiple parser versions per vertical, but only one is active at a time.
+
+## Why Parsers Matter
+
+In environments where connectivity is unreliable, every byte counts. When an event cannot be sent via REST, Wede falls back to SMS. A parser ensures that the most critical fields are encoded efficiently — fitting into as few SMS segments as possible — while preserving data integrity and legal compliance.
+
+A well-configured parser means your operations continue without interruption, regardless of network conditions.
+
+## Field Sections
+
+Each parser is composed of fields organised into sections:
+
+| Section | Purpose |
+|---------|---------|
+| `core` | Mandatory identifiers and timestamps — always transmitted |
+| `location` | GPS coordinates and addresses |
+| `human` | Person data — subject to legal and GDPR requirements |
+| `hardware` | Equipment, vehicle and device identifiers |
+| `team` | Responder team, dispatch and capacity data |
+| `custom` | Tenant-defined free fields |
+
+## Field Types
+
+| Type | Description | Max Bytes |
+|------|-------------|-----------|
+| `string` | Short text | 20 |
+| `number` | Numeric value | 8 |
+| `boolean` | Yes/No flag | 1 |
+| `gps` | Latitude/longitude coordinates | 18 |
+| `text` | Free text (longer) | 80 |
+| `timestamp` | ISO date/time | 14 |
+| `enum` | Fixed set of values | 6 |
+| `phone` | Phone number | 15 |
+| `email` | Email address | 30 |
+| `address` | Free text address | 60 |
+| `hardware_id` | Device or equipment ID | 16 |
+
+## SMS Encoding
+
+Wede calculates the estimated byte size of each enabled field and the total payload size. If the payload exceeds 140 bytes, it is automatically fragmented into multiple SMS messages and reassembled at the destination.
+
+Each field is encoded as `sms_code=value` pairs. The `sms_code` is a short identifier (up to 8 characters) that minimises transmission size.
+Fields marked `offline_capable: false` are excluded when transmitting via SMS.
+
+## Legal Fields
+
+Fields marked `legal: true` contain personally identifiable information (PII). These fields are subject to GDPR and local data protection regulations. Wede logs access to legal fields in the audit trail automatically.
+
+## Versioning
+
+When you update a parser schema, Wede creates a new version. The previous version is deactivated but retained for audit purposes. All events are tagged with the parser version active at the time of creation.
+
+## Roles & Access
+
+| Role | Access |
+|------|--------|
+| `wede_global_admin`, `wede_tech_ops` | All parsers across all tenants |
+| `country_admin` | Parsers for tenants in assigned countries |
+| `company_admin`, `company_tech`, `operational_supervisor`, `corporate_client` | Own tenant parsers, own verticals only |
+| `field_operator`, `api_user` | No parser access |
+
+## Example — Healthcare Parser
+
+A minimal healthcare parser for offline-capable emergency events:
+
+```json
+{
+  "vertical": "healthcare",
+  "name": "Healthcare v1",
+  "schema": [
+    { "id": "hc_eid", "name": "event_id", "sms_code": "eid", "type": "string", "required": true, "enabled": true, "offline_capable": true, "section": "core", "max_bytes": 12 },
+    { "id": "hc_ts", "name": "timestamp", "sms_code": "ts", "type": "timestamp", "required": true, "enabled": true, "offline_capable": true, "section": "core", "max_bytes": 14 },
+    { "id": "hc_typ", "name": "event_type", "sms_code": "typ", "type": "enum", "required": true, "enabled": true, "offline_capable": true, "section": "core", "max_bytes": 6, "enum_values": ["CARDIAC", "TRAUMA", "STROKE", "RESPIRATORY", "OTHER"] },
+    { "id": "hc_pid", "name": "patient_id", "sms_code": "pid", "type": "string", "required": true, "enabled": true, "offline_capable": true, "section": "human", "max_bytes": 16, "legal": true },
+    { "id": "hc_gps", "name": "requester_gps", "sms_code": "rgps", "type": "gps", "required": true, "enabled": true, "offline_capable": true, "section": "location", "max_bytes": 18 }
+  ]
+}
+```
+
+This parser fits in a single SMS segment (approximately 90 bytes), ensuring delivery even on the most degraded networks.
