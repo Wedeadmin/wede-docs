@@ -17,8 +17,8 @@ Each zone operates in one of four connectivity states:
 |-------|---------|
 | **online** | Full internet connectivity — primary channel active |
 | **degraded** | Reduced connectivity — optimised routing active |
-| **sms_only** | Internet unavailable — SMS and alternative channels active |
-| **offline** | All external channels unavailable — local continuity active |
+| **sms_only** | Internet unavailable — SMS and voice channels active |
+| **offline** | All external channels unavailable — LoRa, satellite and edge active |
 
 State transitions are detected automatically by Wede based on real-time monitoring. Your integration does not need to handle state changes — Wede routes transparently.
 
@@ -29,21 +29,93 @@ Each zone has:
 - **Zone code** — unique identifier (e.g. `zone_hospital_evora`)
 - **Name** — human-readable label
 - **Country and region** — geographic scope
-- **GPS coordinates** — centre point for proximity calculations
+- **GPS coordinates** — centre point for map display and proximity calculations
 - **Active verticals** — which industry modules are active in this zone
 - **Connectivity state** — current operational status
+- **Incident flag** — whether an active incident is in progress
 
-## Managing Zones
+## Creating a Zone
 
-Zones are managed in the [Dashboard](https://app.wede.pt/dashboard/zones) or via the API.
+Via the dashboard at [app.wede.pt/dashboard/zones](https://app.wede.pt/dashboard/zones) or via the API:
 
 ```bash
-curl https://api.wede.pt/v1/zones \
-  -H "X-Wede-API-Key: wede_live_YOUR_KEY"
+curl -X POST https://api.wede.pt/v1/tenant/zones \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "zone_code": "zone_hospital_evora",
+    "name": "Hospital Espírito Santo — Évora",
+    "country": "PT",
+    "region": "Évora",
+    "lat_center": 38.5687,
+    "lng_center": -7.9038
+  }'
 ```
+
+## Listing Zones
+
+```bash
+curl https://api.wede.pt/v1/tenant/zones \
+  -H "x-wede-api-key: wede_live_YOUR_KEY"
+```
+
+Response:
+
+```json
+{
+  "zones": [
+    {
+      "zone_code": "zone_hospital_evora",
+      "name": "Hospital Espírito Santo — Évora",
+      "country": "PT",
+      "connectivity_state": "online",
+      "incident_active": false,
+      "lat_center": "38.568700",
+      "lng_center": "-7.903800"
+    }
+  ],
+  "total": 1
+}
+```
+
+## Zone Examples by Vertical
+
+**Healthcare:**
+- `zone_hospital_lisbon` — Hospital Santa Maria, Lisboa
+- `zone_emergency_porto` — Emergency Centre, Porto
+- `zone_rural_kisumu` — Rural District Hospital, Kisumu
+
+**Banking:**
+- `zone_atm_network_lagos` — ATM Network, Lagos
+- `zone_branch_dubai` — Branch Operations, Dubai
+- `zone_field_agents_nairobi` — Field Agents, Nairobi
+
+**Logistics:**
+- `zone_warehouse_maputo` — Warehouse, Maputo
+- `zone_lastmile_singapore` — Last-Mile, Singapore
+- `zone_port_luanda` — Port Operations, Luanda
+
+**Government:**
+- `zone_border_control_pt` — Border Control, Portugal
+- `zone_utility_grid_ao` — Utility Grid, Angola
 
 ## Incidents
 
-A zone can have an active incident flag. When an incident is active, Wede prioritises delivery through all available channels and alerts configured webhooks.
+A zone can have an active incident flag. When an incident is active:
+
+- Wede prioritises delivery through all available channels
+- Configured webhooks receive immediate notification
+- The dashboard displays the zone in alert state
+- All events for the zone are escalated in priority
 
 Incident state is visible in real-time in the dashboard and included in all zone API responses.
+
+## Zone Visibility by Role
+
+| Role | Zone Access |
+|------|-------------|
+| `company_admin` | All zones in their tenant |
+| `company_tech` | All zones in their tenant |
+| `operational_supervisor` | All zones in their tenant |
+| `field_operator` | Assigned zones only |
+| `country_admin` | All zones in their assigned countries |

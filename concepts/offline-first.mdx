@@ -13,33 +13,63 @@ This is what offline-first means: not a fallback mode, but the default architect
 
 ## Delivery Channels
 
-Wede maintains multiple delivery channels for every operational zone. When the primary channel degrades, the next channel activates automatically.
+Wede maintains multiple delivery channels for every operational zone. When the primary channel degrades, the next channel activates automatically — transparently, without any changes to your integration.
 
-The channel hierarchy is managed by Wede based on zone configuration and real-time connectivity monitoring. Your integration does not change — Wede routes transparently.
+| Channel | Description | Best For |
+|---------|-------------|----------|
+| **REST Full** | Standard HTTPS — primary channel | Normal operations |
+| **REST Compressed** | Optimised low-bandwidth HTTPS | Degraded internet |
+| **SMS** | Cellular SMS delivery | When internet is unavailable |
+| **Voice** | Voice call delivery | Critical alerts, no data |
+| **LoRa** | Long-range IoT radio | Remote areas, IoT devices |
+| **Satellite** | Global satellite coverage | Extreme environments, no cellular |
+| **Edge** | Local edge processing | Zero external dependency |
+
+Channel selection is automatic and transparent. Your API call stays the same regardless of which channel delivers the event.
 
 ## Connectivity States
 
-Each zone has an independent connectivity state:
+Each zone has an independent connectivity state, monitored in real-time:
 
-| State | Meaning |
-|-------|---------|
-| **Online** | Full connectivity, primary channel active |
-| **Degraded** | Reduced connectivity, optimised routing active |
-| **SMS Only** | Internet unavailable, alternative channels active |
-| **Offline** | All external channels unavailable, local continuity active |
+| State | Meaning | Channels Active |
+|-------|---------|-----------------|
+| **online** | Full connectivity | REST Full, REST Compressed |
+| **degraded** | Reduced connectivity | REST Compressed, SMS |
+| **sms_only** | Internet unavailable | SMS, Voice |
+| **offline** | All external channels unavailable | LoRa, Satellite, Edge |
 
-Zone states are monitored in real-time and visible in your [dashboard](https://app.wede.pt/dashboard/zones).
+Zone states are visible in real-time in your [dashboard](https://app.wede.pt/dashboard/zones) and via the API.
 
-## Data Integrity
+## Idempotency
 
-Every event sent to Wede has an `idempotency_key`. This guarantees that even if the same event is sent multiple times — due to network retries or reconnection — it is processed exactly once.
+Every event sent to Wede requires an `idempotency_key`. This guarantees that even if the same event is sent multiple times — due to network retries or reconnection — it is processed exactly once.
 
-When connectivity is restored after an offline period, events are synchronised in order, with conflict resolution handled automatically.
+```json
+{
+  "type": "EMERGENCY_DISPATCH",
+  "priority": "critical",
+  "vertical": "healthcare",
+  "idempotency_key": "dispatch-2026-05-19-amb07-001"
+}
+```
+
+Choose idempotency keys that are unique per logical event — not per API call.
+
+## Synchronisation
+
+When connectivity is restored after an offline period, events queued during the outage are synchronised automatically. Order is preserved. Conflicts are resolved without data loss.
+
+Your system receives webhook notifications as each queued event is delivered — giving you full visibility of what happened during the outage.
 
 ## Security
 
-All communication is encrypted in transit. Payloads are opaque to Wede — we transport your data but never read or store its contents. You control encryption at the application layer.
+All communication is encrypted in transit over HTTPS. Events are authenticated using your API key or JWT token. All operations are logged in an immutable audit trail.
 
 ## Compliance
 
-Wede is designed for regulated industries. Data residency is configurable per zone. All operations are logged in an immutable audit trail. Access is controlled by role-based permissions with full audit visibility.
+Wede is designed for regulated industries:
+
+- **Data residency** — configurable per zone and per country
+- **Audit trail** — every operation logged with user, timestamp and IP
+- **Role-based access** — granular permissions per user role
+- **GDPR** — data processed within EU infrastructure (GCP europe-west1)

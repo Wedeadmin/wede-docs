@@ -1,21 +1,87 @@
 ---
 title: Connectivity
-description: How Wede manages connectivity across channels
+description: How Wede monitors and manages connectivity across operational zones
 ---
 
-## Fallback Chain
+## Real-Time Monitoring
 
-Wede automatically manages the fallback chain for each zone:
+Wede continuously monitors connectivity across all operational zones. Each zone has an independent connectivity state that reflects current network conditions in that geographic area.
 
-1. **Internet (REST)** — primary channel, full bandwidth
-2. **SMS** — structured data over SMS, compressed payloads
-3. **Voice** — DTMF-encoded data over voice calls
-4. **Offline Token** — cryptographically signed local tokens
+State changes are detected automatically and trigger channel switching without any action required from your integration.
 
-## Automatic Switching
+## Connectivity States
 
-When Wede detects degradation in the primary channel, it switches to the next available channel automatically. Your integration does not need to handle this — Wede manages it transparently.
+| State | Description | Action |
+|-------|-------------|--------|
+| **online** | Full internet connectivity | Primary REST channel active |
+| **degraded** | Reduced bandwidth or reliability | Compressed REST, optimised routing |
+| **sms_only** | Internet unavailable | SMS and voice delivery active |
+| **offline** | All external channels down | LoRa, satellite, edge processing |
 
-## Monitoring
+## Channel Hierarchy
 
-Monitor connectivity state in real-time via the [dashboard](https://app.wede.pt/dashboard/zones) or subscribe to connectivity webhooks.
+When a zone's connectivity degrades, Wede activates the next available channel automatically:
+The channel used for each event delivery is included in the API response and webhook payload, giving you full visibility of how each event was delivered.
+
+## Reporting Connectivity
+
+Your field devices and systems can report connectivity state to Wede:
+
+```bash
+curl -X POST https://api.wede.pt/v1/connectivity/report \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "zone_code": "zone_hospital_evora",
+    "state": "degraded",
+    "signal_strength": -85,
+    "channel": "sms"
+  }'
+```
+
+## Checking Connectivity Status
+
+```bash
+curl https://api.wede.pt/v1/connectivity/status \
+  -H "x-wede-api-key: wede_live_YOUR_KEY"
+```
+
+Response:
+
+```json
+{
+  "zones": [
+    {
+      "zone_code": "zone_hospital_evora",
+      "connectivity_state": "online",
+      "last_updated": "2026-05-19T10:00:00Z",
+      "channels_available": ["rest_full", "rest_compressed", "sms"]
+    }
+  ]
+}
+```
+
+## Webhook Notifications
+
+When a zone changes connectivity state, Wede notifies your configured webhooks immediately:
+
+```json
+{
+  "event": "zone.state_changed",
+  "zone_code": "zone_hospital_evora",
+  "previous_state": "online",
+  "current_state": "sms_only",
+  "timestamp": "2026-05-19T10:15:00Z"
+}
+```
+
+Configure webhooks in the [dashboard](https://app.wede.pt/dashboard/webhooks) or via the API.
+
+## Dashboard Visibility
+
+All zone connectivity states are visible in real-time on the [dashboard map](https://app.wede.pt/dashboard). Each zone is represented by a colour-coded marker:
+
+- 🟢 **Green** — online
+- 🟡 **Amber** — degraded or sms_only
+- 🔴 **Red** — offline
+- ⚪ **Pulsing** — incident active

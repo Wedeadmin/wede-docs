@@ -3,15 +3,33 @@ title: Verticals
 description: How Wede serves different industries
 ---
 
-## Healthcare
+## Healthcare & Emergency Services
 
 In healthcare, communication failures cost lives. Wede ensures that emergency dispatch, patient monitoring alerts, and field medical team coordination continue even when hospital networks fail.
 
 **Use cases:**
-- Emergency medical dispatch
-- Field team coordination during disasters
+- Emergency medical dispatch and ambulance coordination
 - Patient status updates between facilities
-- Medical supply chain alerts
+- ICU and critical care alerts
+- Field team coordination during mass casualty events
+- Medical supply chain and blood bank alerts
+- Rural and remote clinic connectivity
+
+**Example event:**
+```json
+{
+  "type": "CARDIAC_ARREST_ALERT",
+  "priority": "critical",
+  "vertical": "healthcare",
+  "payload": {
+    "unit": "AMB-PT-07",
+    "location": "Hospital Santa Maria, Lisboa",
+    "eta_minutes": 4
+  }
+}
+```
+
+---
 
 ## Banking & Financial Services
 
@@ -19,9 +37,28 @@ Payment terminals, ATM networks, and field banking agents operate in environment
 
 **Use cases:**
 - Payment terminal resilience
+- ATM network monitoring and alerts
 - Field agent dispatch and coordination
 - Fraud alert delivery
-- ATM network monitoring
+- Mobile banking operations in low-connectivity areas
+- Cross-border transaction notifications
+
+**Example event:**
+```json
+{
+  "type": "FRAUD_ALERT",
+  "priority": "high",
+  "vertical": "banking",
+  "payload": {
+    "terminal_id": "ATM-NG-042",
+    "account_ref": "****4521",
+    "amount": 150000,
+    "currency": "NGN"
+  }
+}
+```
+
+---
 
 ## Logistics & Delivery
 
@@ -29,9 +66,56 @@ Last-mile delivery operates in areas with poor connectivity. Wede keeps fleet co
 
 **Use cases:**
 - Last-mile delivery coordination
-- Fleet management and dispatch
-- Warehouse operations
-- Supply chain event tracking
+- Fleet management and driver dispatch
+- Warehouse operations and inventory alerts
+- Cold chain monitoring
+- Cross-border logistics coordination
+- Port and customs notifications
+
+**Example event:**
+```json
+{
+  "type": "DELIVERY_CONFIRMED",
+  "priority": "normal",
+  "vertical": "delivery",
+  "payload": {
+    "driver_id": "DRV-KE-019",
+    "order_id": "ORD-29841",
+    "location": "Westlands, Nairobi"
+  }
+}
+```
+
+---
+
+## Telecommunications
+
+Network operations and field engineer dispatch require reliable communication even when the network being maintained is itself degraded.
+
+**Use cases:**
+- Network operations centre alerts
+- Field engineer dispatch and coordination
+- Infrastructure fault notifications
+- Tower and base station monitoring
+- Service outage management
+- Customer impact alerts
+
+**Example event:**
+```json
+{
+  "type": "NETWORK_FAULT",
+  "priority": "high",
+  "vertical": "telecom",
+  "payload": {
+    "site_id": "BTS-AE-112",
+    "fault_type": "power_failure",
+    "region": "Dubai — Al Barsha",
+    "affected_subscribers": 8400
+  }
+}
+```
+
+---
 
 ## Emergency Services
 
@@ -39,9 +123,28 @@ Civil protection, fire brigades, and search and rescue teams operate in the most
 
 **Use cases:**
 - Emergency dispatch coordination
-- Field team communication
-- Incident management
-- Resource allocation
+- Field team communication during incidents
+- Resource allocation and mutual aid
+- Evacuation order delivery
+- Incident command coordination
+- Cross-agency communication
+
+**Example event:**
+```json
+{
+  "type": "EVACUATION_ORDER",
+  "priority": "critical",
+  "vertical": "events",
+  "payload": {
+    "zone": "zona_norte_maputo",
+    "radius_km": 5,
+    "reason": "industrial_incident",
+    "population_affected": 12400
+  }
+}
+```
+
+---
 
 ## Government & Public Services
 
@@ -49,6 +152,23 @@ Critical infrastructure and public services require guaranteed operational conti
 
 **Use cases:**
 - Border control operations
-- Utility network monitoring
+- Utility network monitoring (water, electricity, gas)
 - Public transport coordination
 - Civil protection alerts
+- Infrastructure maintenance dispatch
+- Inter-agency emergency communication
+
+**Example event:**
+```json
+{
+  "type": "INFRASTRUCTURE_ALERT",
+  "priority": "high",
+  "vertical": "gov",
+  "payload": {
+    "asset_id": "POWER-GRID-AO-07",
+    "alert_type": "overload",
+    "region": "Luanda Norte",
+    "estimated_restoration": "2026-05-19T18:00:00Z"
+  }
+}
+```

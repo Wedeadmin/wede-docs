@@ -11,33 +11,62 @@ API keys have the format: `wede_live_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`
 
 ## Using your API key
 
-### Direct authentication
-
-For most endpoints, pass your API key in the `x-wede-api-key` header:
+Pass your API key in the `x-wede-api-key` header:
 
 ```bash
-curl https://api.wede.pt/v1/events \
+curl https://api.wede.pt/v1/tenant/zones \
   -H "x-wede-api-key: wede_live_YOUR_KEY"
 ```
 
-### JWT token
+## JWT Authentication
 
-Some endpoints require a JWT token. Exchange your API key for a token:
+For user-level access (dashboard, admin operations), authenticate with email and password to receive a JWT token:
 
 ```bash
-curl -X POST https://api.wede.pt/v1/auth/token \
+curl -X POST https://api.wede.pt/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"api_key": "wede_live_YOUR_KEY"}'
+  -d '{
+    "email": "your@email.com",
+    "password": "your_password"
+  }'
+```
+
+Response:
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expires_in": 28800,
+  "user": {
+    "id": "uuid",
+    "email": "your@email.com",
+    "name": "Your Name",
+    "rbac_level": "company_admin"
+  }
+}
 ```
 
 Use the token in the `Authorization` header:
 
 ```bash
 curl https://api.wede.pt/v1/tenant/zones \
-  -H "Authorization: Bearer eyJ..."
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
-JWT tokens expire after **1 hour**.
+JWT tokens expire after **8 hours**.
+
+## User Roles
+
+Wede uses role-based access control. Each user has one of the following roles:
+
+| Role | Description |
+|------|-------------|
+| `company_admin` | Full access to tenant resources |
+| `company_tech` | Technical access — API, webhooks, zones |
+| `operational_supervisor` | Operational access — events, zones, dispatch |
+| `field_operator` | Field access — events and zone status |
+| `corporate_client` | Read-only access to reports |
+| `api_user` | API-only access, no dashboard |
 
 ## Security
 
@@ -46,5 +75,6 @@ JWT tokens expire after **1 hour**.
 </Warning>
 
 - Store API keys in environment variables
-- Rotate keys regularly via the dashboard
-- Use the minimum required permissions
+- Rotate keys regularly via the [dashboard](https://app.wede.pt/dashboard/settings)
+- Use the minimum required permissions for each integration
+- All API traffic is encrypted in transit over HTTPS

@@ -6,7 +6,7 @@ icon: 'rocket'
 
 ## Before you start
 
-You need a Wede account and an API key. [Sign up at app.wede.pt](https://app.wede.pt) or contact [geral@wede.pt](mailto:geral@wede.pt) to get access.
+You need a Wede account and an API key. [Sign up at app.wede.pt](https://app.wede.pt/register) or contact [geral@wede.pt](mailto:geral@wede.pt) to get access.
 
 Your API key looks like this: `wede_live_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`
 
@@ -14,32 +14,112 @@ Your API key looks like this: `wede_live_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`
 
 ## Step 1 — Send your first event
 
-Send an event to the Wede API:
+Choose the example that matches your industry:
 
+<Tabs>
+  <Tab title="Healthcare">
 ```bash
 curl -X POST https://api.wede.pt/v1/events \
-  -H "X-Wede-API-Key: wede_live_YOUR_KEY" \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "type": "EMERGENCY",
+    "type": "EMERGENCY_DISPATCH",
     "priority": "critical",
     "vertical": "healthcare",
-    "idempotency_key": "my-first-event-001",
+    "idempotency_key": "hc-evt-001",
     "payload": {
+      "unit": "AMB-PT-07",
       "patient_id": "PT-001",
-      "location": "Ward 3B"
+      "location": "Hospital Santa Maria, Lisboa",
+      "condition": "cardiac_arrest"
     }
   }'
 ```
+  </Tab>
+  <Tab title="Banking">
+```bash
+curl -X POST https://api.wede.pt/v1/events \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "FRAUD_ALERT",
+    "priority": "high",
+    "vertical": "banking",
+    "idempotency_key": "bk-evt-001",
+    "payload": {
+      "terminal_id": "ATM-NG-042",
+      "account_ref": "****4521",
+      "amount": 150000,
+      "currency": "NGN"
+    }
+  }'
+```
+  </Tab>
+  <Tab title="Logistics">
+```bash
+curl -X POST https://api.wede.pt/v1/events \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "DELIVERY_STATUS",
+    "priority": "normal",
+    "vertical": "delivery",
+    "idempotency_key": "lg-evt-001",
+    "payload": {
+      "driver_id": "DRV-KE-019",
+      "order_id": "ORD-29841",
+      "status": "arrived",
+      "location": "Westlands, Nairobi"
+    }
+  }'
+```
+  </Tab>
+  <Tab title="Telecom">
+```bash
+curl -X POST https://api.wede.pt/v1/events \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "NETWORK_ALERT",
+    "priority": "high",
+    "vertical": "telecom",
+    "idempotency_key": "tc-evt-001",
+    "payload": {
+      "site_id": "BTS-AE-112",
+      "alert_type": "power_failure",
+      "region": "Dubai — Al Barsha"
+    }
+  }'
+```
+  </Tab>
+  <Tab title="Government">
+```bash
+curl -X POST https://api.wede.pt/v1/events \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "CIVIL_ALERT",
+    "priority": "critical",
+    "vertical": "gov",
+    "idempotency_key": "gv-evt-001",
+    "payload": {
+      "zone": "zona_norte_maputo",
+      "alert_type": "evacuation",
+      "population_affected": 12400
+    }
+  }'
+```
+  </Tab>
+</Tabs>
 
 You will receive a response confirming the event was accepted:
 
 ```json
 {
-  "event_id": "0ee3dfbe-1234-...",
+  "event_id": "0ee3dfbe-1234-abcd-5678-ef90ab12cd34",
   "status": "pending",
   "channel_selected": "rest_full",
-  "created_at": "2026-05-14T21:00:00Z"
+  "created_at": "2026-05-19T10:00:00Z"
 }
 ```
 
@@ -50,8 +130,8 @@ You will receive a response confirming the event was accepted:
 Wede monitors connectivity per operational zone. Check the current state:
 
 ```bash
-curl https://api.wede.pt/v1/zones \
-  -H "X-Wede-API-Key: wede_live_YOUR_KEY"
+curl https://api.wede.pt/v1/tenant/zones \
+  -H "x-wede-api-key: wede_live_YOUR_KEY"
 ```
 
 ---
@@ -62,7 +142,7 @@ Receive real-time delivery confirmations in your system:
 
 ```bash
 curl -X POST https://api.wede.pt/v1/webhooks \
-  -H "X-Wede-API-Key: wede_live_YOUR_KEY" \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://your-system.com/wede-webhook",
@@ -99,6 +179,6 @@ Your integration does not change — Wede handles routing transparently.
     Full API documentation with examples
   </Card>
   <Card title="Verticals" icon="buildings" href="/concepts/verticals">
-    Healthcare, banking, logistics, emergency services
+    Healthcare, banking, logistics, telecom, emergency and government
   </Card>
 </CardGroup>

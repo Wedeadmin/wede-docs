@@ -21,11 +21,25 @@ Your teams keep working. Your systems keep running.
 
 Wede is built for organisations where downtime is not an option:
 
-- **Healthcare** — emergency dispatch, patient monitoring, field medical teams
-- **Banking & Financial Services** — payment terminals, ATM networks, field agents
+- **Healthcare & Emergency Services** — emergency dispatch, patient monitoring, field medical teams, ambulance coordination
+- **Banking & Financial Services** — payment terminals, ATM networks, field agents, fraud alerts
 - **Logistics & Delivery** — last-mile coordination, fleet management, warehouse operations
-- **Emergency Services** — civil protection, fire brigades, search and rescue
-- **Government & Public Services** — critical infrastructure, border control, utilities
+- **Telecommunications** — network operations, field engineer dispatch, infrastructure monitoring
+- **Government & Public Services** — critical infrastructure, border control, utilities, civil protection
+
+## Communication Channels
+
+Wede routes events through multiple channels, automatically selecting the best available option per zone:
+
+| Channel | Description |
+|---------|-------------|
+| **REST Full** | Standard internet — primary channel |
+| **REST Compressed** | Optimised internet — low-bandwidth environments |
+| **SMS** | Cellular SMS — when internet is unavailable |
+| **Voice** | Voice call delivery — for critical alerts |
+| **LoRa** | Long-range IoT — remote and rural areas |
+| **Satellite** | Global satellite coverage — extreme environments |
+| **Edge** | Local edge processing — zero external dependency |
 
 ## How It Works
 
@@ -42,15 +56,18 @@ curl -X POST https://api.wede.pt/v1/events \
   -H "x-wede-api-key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "type": "EMERGENCY",
+    "type": "EMERGENCY_DISPATCH",
     "priority": "critical",
     "vertical": "healthcare",
     "idempotency_key": "evt-001",
-    "payload": {}
+    "payload": {
+      "unit": "AMB-PT-07",
+      "location": "Hospital Santa Maria, Lisboa"
+    }
   }'
 ```
 
-[Get your API key](https://app.wede.pt) · [Read the Quickstart](/quickstart) · [API Reference](/api-reference/introduction)
+[Try the demo](https://app.wede.pt/register) · [Read the Quickstart](/quickstart) · [API Reference](/api-reference/introduction)
 
 ## Base URL
-All API requests are made over HTTPS. The platform is hosted in Europe with global reach.
+All API requests are made over HTTPS. The platform is hosted in Europe (GCP europe-west1) with global reach across 190+ countries.
