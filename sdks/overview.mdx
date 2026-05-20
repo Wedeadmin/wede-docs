@@ -3,33 +3,61 @@ title: SDKs
 description: Official Wede SDKs and client libraries
 ---
 
+## JavaScript / TypeScript SDK
+
+The official Wede SDK for JavaScript and TypeScript is available on GitHub.
+
+**Repository:** https://github.com/Wedeadmin/wede-sdk
+
+### Installation
+
+npm install @wede/sdk
+
+### Quick Start
+
+import { WedeClient } from '@wede/sdk'
+
+const client = new WedeClient({ apiKey: 'wede_live_YOUR_KEY' })
+
+// Send an event
+await client.sendEvent({
+  type: 'EMERGENCY',
+  priority: 'critical',
+  vertical: 'healthcare',
+  idempotency_key: 'evt-001',
+  payload: { patient_id: 'PT123' }
+})
+
+// List zones
+const zones = await client.listZones()
+
+// Sync offline batch
+await client.syncBatch({
+  events: [...offlineEvents],
+  device_id: 'device-001',
+  captured_at: new Date().toISOString()
+})
+
+### Available Methods
+
+| Method | Description |
+|--------|-------------|
+| sendEvent(event) | Submit a new event |
+| listEvents(params?) | List events |
+| listZones() | List all zones |
+| getZone(zoneId) | Get a specific zone |
+| syncBatch(batch) | Sync offline events |
+| getConnectivityStatus(zoneId) | Get zone connectivity state |
+| reportConnectivity(report) | Report connectivity state |
+| getTenantInfo() | Get tenant details |
+| getUsage(from, to) | Get usage statistics |
+
 ## Coming Soon
 
-Official SDKs for the following platforms are in development:
-
-- **JavaScript / TypeScript** — for Node.js and browser environments
 - **Python** — for backend integrations
 - **React Native** — for mobile field operator apps
 - **Swift** — for iOS field operator apps
 
-## In the meantime
+## Support
 
-Use the REST API directly. All endpoints are documented in the [API Reference](/api-reference/introduction).
-
-```bash
-# Example: send an event with curl
-curl -X POST https://api.wede.pt/v1/events \
-  -H "x-wede-api-key: wede_live_YOUR_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "type": "EMERGENCY",
-    "priority": "critical",
-    "vertical": "healthcare",
-    "idempotency_key": "evt-001",
-    "payload": {}
-  }'
-```
-
-## Notify me
-
-Want to be notified when SDKs are available? Email [geral@wede.pt](mailto:geral@wede.pt).
+Email [geral@wede.pt](mailto:geral@wede.pt) or visit [docs.wede.pt](https://docs.wede.pt).
