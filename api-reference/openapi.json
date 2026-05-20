@@ -1,104 +1,196 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Wede Technology API",
-    "description": "Operational continuity platform — offline-first event delivery for mission-critical services",
+    "title": "Wede Resilience API",
     "version": "1.0.0",
+    "description": "API p\u00fablica da plataforma Wede \u2014 camada de resili\u00eancia offline-first.\n\nEsta API \u00e9 o contrato t\u00e9cnico entre a Wede e os integradores (tenants).\nO integrador nunca comunica directamente com o canal de transporte subjacente\n(SMS, voz, rede degradada). A Wede intercepta, normaliza e encaminha cada\nopera\u00e7\u00e3o pelo canal mais adequado de forma determin\u00edstica e transparente.\n\n**Vers\u00e3o:** v1.0.0 \u2014 Phase 1 (Core SaaS)\n**Patente:** INPI PT 120488\n**Contacto:** api@wede.pt\n\n## N\u00edveis de fallback suportados\n| N\u00edvel | Condi\u00e7\u00e3o | Protocolo |\n|-------|----------|-----------|\n| 1 | 4G/5G | REST/JSON completo |\n| 2 | 3G degradado | REST/JSON comprimido (gzip) |\n| 3 | 2G/EDGE | SMS estruturado propriet\u00e1rio |\n| 4 | GSM apenas | SMS emerg\u00eancia + voz |\n\n## Autentica\u00e7\u00e3o\nTodas as chamadas requerem `X-Wede-API-Key` no header.\nEm modo offline (SDK), o token \u00e9 validado localmente via chave p\u00fablica pr\u00e9-distribu\u00edda.\n",
     "contact": {
-      "name": "Wede Technology",
-      "email": "geral@wede.pt",
-      "url": "https://wede.pt"
+      "name": "Wede API Support",
+      "email": "api@wede.pt",
+      "url": "https://docs.wede.pt"
+    },
+    "license": {
+      "name": "Propriet\u00e1rio \u2014 Wede Technology",
+      "url": "https://wede.pt/legal"
     }
   },
   "servers": [
     {
-      "url": "https://api.wede.pt",
-      "description": "Production"
+      "url": "https://api.wede.pt/v1",
+      "description": "Produ\u00e7\u00e3o"
+    },
+    {
+      "url": "https://sandbox.api.wede.pt/v1",
+      "description": "Sandbox (simula todos os estados de conectividade)"
     }
   ],
   "security": [
-    { "ApiKeyAuth": [] }
-  ],
-  "components": {
-    "securitySchemes": {
-      "ApiKeyAuth": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-Wede-API-Key"
-      },
-      "BearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
-      }
-    },
-    "schemas": {
-      "Event": {
-        "type": "object",
-        "properties": {
-          "event_id": { "type": "string", "format": "uuid" },
-          "type": { "type": "string", "example": "EMERGENCY" },
-          "priority": { "type": "string", "enum": ["critical", "high", "normal", "low"] },
-          "vertical": { "type": "string", "enum": ["healthcare", "banking", "logistics", "emergency", "gov", "telecom"] },
-          "status": { "type": "string", "enum": ["pending", "delivered", "failed", "queued_offline"] },
-          "channel_selected": { "type": "string", "enum": ["rest_full", "sms", "queued_offline"] },
-          "idempotency_key": { "type": "string" },
-          "payload": { "type": "object" },
-          "created_at": { "type": "string", "format": "date-time" }
-        }
-      },
-      "Zone": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "zone_code": { "type": "string", "example": "zone_lisbon_pt" },
-          "name": { "type": "string", "example": "Lisboa" },
-          "country": { "type": "string", "example": "PT" },
-          "region": { "type": "string" },
-          "connectivity_state": { "type": "string", "enum": ["online", "degraded", "sms_only", "offline"] },
-          "incident_active": { "type": "boolean" },
-          "verticals_active": { "type": "array", "items": { "type": "string" } }
-        }
-      },
-      "Webhook": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "url": { "type": "string", "format": "uri" },
-          "events": { "type": "array", "items": { "type": "string" } },
-          "is_active": { "type": "boolean" },
-          "created_at": { "type": "string", "format": "date-time" }
-        }
-      },
-      "Error": {
-        "type": "object",
-        "properties": {
-          "error": { "type": "string" },
-          "message": { "type": "string" },
-          "request_id": { "type": "string" }
-        }
-      }
+    {
+      "ApiKeyAuth": []
     }
-  },
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Autentica\u00e7\u00e3o e gest\u00e3o de credenciais do tenant"
+    },
+    {
+      "name": "Events",
+      "description": "Submiss\u00e3o e consulta de eventos (opera\u00e7\u00f5es normalizadas)"
+    },
+    {
+      "name": "Sync",
+      "description": "Sincroniza\u00e7\u00e3o de eventos gerados offline"
+    },
+    {
+      "name": "Connectivity",
+      "description": "Estado de conectividade e fallback por zona"
+    },
+    {
+      "name": "Webhooks",
+      "description": "Registo e gest\u00e3o de webhooks do tenant"
+    },
+    {
+      "name": "Tenant",
+      "description": "Informa\u00e7\u00e3o e configura\u00e7\u00e3o do tenant autenticado"
+    },
+    {
+      "name": "Sandbox",
+      "description": "Simula\u00e7\u00e3o de estados de conectividade (apenas ambiente sandbox)"
+    }
+  ],
   "paths": {
-    "/v1/events": {
+    "/auth/token": {
       "post": {
-        "summary": "Create Event",
-        "description": "Submit a new event for delivery. Wede selects the best available channel automatically.",
-        "operationId": "createEvent",
-        "tags": ["Events"],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Obter token de sess\u00e3o",
+        "description": "Troca a API Key por um JWT de sess\u00e3o com TTL configur\u00e1vel.\nO JWT \u00e9 usado para autenticar chamadas subsequentes.\nEm modo offline, o SDK usa a chave p\u00fablica do tenant para valida\u00e7\u00e3o local.\n",
+        "operationId": "auth_token",
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": ["type", "priority", "vertical", "idempotency_key"],
-                "properties": {
-                  "type": { "type": "string", "example": "EMERGENCY" },
-                  "priority": { "type": "string", "enum": ["critical", "high", "normal", "low"] },
-                  "vertical": { "type": "string", "enum": ["healthcare", "banking", "logistics", "emergency", "gov", "telecom"] },
-                  "idempotency_key": { "type": "string", "example": "evt-001" },
-                  "payload": { "type": "object" }
+                "$ref": "#/components/schemas/AuthTokenRequest"
+              },
+              "example": {
+                "api_key": "wede_live_abc123xyz",
+                "scope": "events:write events:read sync:write webhooks:read"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token emitido com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/auth/rotate": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Rodar API Key",
+        "description": "Gera uma nova API Key para o tenant e invalida a anterior ap\u00f3s per\u00edodo de gra\u00e7a\nconfigur\u00e1vel (padr\u00e3o: 24h). Use para rota\u00e7\u00e3o peri\u00f3dica de credenciais.\n",
+        "operationId": "auth_rotate",
+        "responses": {
+          "200": {
+            "description": "Nova API Key gerada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthRotateResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/events": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Submeter evento",
+        "description": "Ponto central de entrada para qualquer opera\u00e7\u00e3o normalizada Wede.\n\nO payload \u00e9 independente do canal de transporte \u2014 a Wede decide\nautomaticamente como encaminhar com base no estado de conectividade\nactual da zona do tenant.\n\n**Tipos de evento suportados em Phase 1:**\n- `EMERGENCY` \u2014 emerg\u00eancia m\u00e9dica, incidente t\u00e9cnico, falha de rede\n- `PAYMENT` \u2014 pagamento offline, wallet fallback, microfinan\u00e7a\n- `BOOKING` \u2014 agendamento de consulta, servi\u00e7o, recurso\n- `STATUS_UPDATE` \u2014 actualiza\u00e7\u00e3o de estado de recurso ou operador\n- `IDENTITY_CONFIRM` \u2014 confirma\u00e7\u00e3o de identidade em rede degradada\n- `DISPATCH` \u2014 despacho de equipa ou recurso de campo\n\nCada evento recebe um `event_id` imut\u00e1vel que persiste atrav\u00e9s de\ntodos os canais e sincroniza\u00e7\u00f5es.\n",
+        "operationId": "events_submit",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventSubmitRequest"
+              },
+              "examples": {
+                "emergency_healthcare": {
+                  "summary": "Emerg\u00eancia m\u00e9dica",
+                  "value": {
+                    "type": "EMERGENCY",
+                    "vertical": "healthcare",
+                    "priority": "critical",
+                    "idempotency_key": "client-uuid-v4-here",
+                    "payload": {
+                      "incident_type": "cardiac_arrest",
+                      "location": {
+                        "lat": 38.7169,
+                        "lng": -9.1399,
+                        "accuracy_meters": 15
+                      },
+                      "patient_id": "pt_anon_8821",
+                      "requested_resources": [
+                        {
+                          "type": "ambulance",
+                          "level": "ALS"
+                        }
+                      ]
+                    },
+                    "metadata": {
+                      "zone_id": "zone_lisbon_central",
+                      "operator_id": "op_9921"
+                    }
+                  }
+                },
+                "payment_offline": {
+                  "summary": "Pagamento offline (fintech)",
+                  "value": {
+                    "type": "PAYMENT",
+                    "vertical": "banking",
+                    "priority": "high",
+                    "idempotency_key": "txn-uuid-v4-here",
+                    "payload": {
+                      "amount": 125.0,
+                      "currency": "MZN",
+                      "sender_id": "wallet_001",
+                      "receiver_id": "wallet_002",
+                      "channel_hint": "sms"
+                    },
+                    "metadata": {
+                      "zone_id": "zone_maputo_north",
+                      "operator_id": "op_fin_4401"
+                    }
+                  }
                 }
               }
             }
@@ -106,59 +198,221 @@
         },
         "responses": {
           "202": {
-            "description": "Event accepted",
+            "description": "Evento aceite. O estado de entrega \u00e9 ass\u00edncrono e comunicado via webhook\nou consult\u00e1vel em `GET /events/{event_id}`.\n",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Event" }
+                "schema": {
+                  "$ref": "#/components/schemas/EventSubmitResponse"
+                }
               }
             }
           },
-          "401": { "description": "Unauthorized", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "429": { "description": "Rate limit exceeded" }
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "description": "Evento duplicado \u2014 idempotency_key j\u00e1 processado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
         }
       },
       "get": {
-        "summary": "List Events",
-        "operationId": "listEvents",
-        "tags": ["Events"],
+        "tags": [
+          "Events"
+        ],
+        "summary": "Listar eventos do tenant",
+        "description": "Retorna eventos do tenant com filtragem por estado, tipo, vertical e zona.\nPagina\u00e7\u00e3o por cursor para suportar volumes elevados.\n",
+        "operationId": "events_list",
         "parameters": [
-          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } },
-          { "name": "offset", "in": "query", "schema": { "type": "integer", "default": 0 } },
-          { "name": "status", "in": "query", "schema": { "type": "string" } }
+          {
+            "$ref": "#/components/parameters/PageCursor"
+          },
+          {
+            "$ref": "#/components/parameters/PageLimit"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "assigned",
+                "in_progress",
+                "completed",
+                "failed",
+                "syncing"
+              ]
+            },
+            "description": "Filtrar por estado do ciclo de vida"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "EMERGENCY",
+                "PAYMENT",
+                "BOOKING",
+                "STATUS_UPDATE",
+                "IDENTITY_CONFIRM",
+                "DISPATCH"
+              ]
+            }
+          },
+          {
+            "name": "vertical",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "healthcare",
+                "banking",
+                "telecom",
+                "delivery",
+                "events",
+                "gov"
+              ]
+            }
+          },
+          {
+            "name": "zone_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "ISO 8601 \u2014 in\u00edcio do intervalo temporal"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
         ],
         "responses": {
           "200": {
-            "description": "List of events",
+            "description": "Lista de eventos",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Event" } },
-                    "total": { "type": "integer" }
-                  }
+                  "$ref": "#/components/schemas/EventListResponse"
                 }
               }
             }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           }
         }
       }
     },
-    "/v1/zones": {
+    "/events/{event_id}": {
       "get": {
-        "summary": "List Zones",
-        "operationId": "listZones",
-        "tags": ["Zones"],
+        "tags": [
+          "Events"
+        ],
+        "summary": "Consultar estado de um evento",
+        "description": "Retorna o estado actual e hist\u00f3rico de ciclo de vida de um evento espec\u00edfico.\nInclui o canal efectivamente usado para entrega e todas as tentativas de fallback.\n",
+        "operationId": "events_get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "List of operational zones",
+            "description": "Detalhe do evento",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "zones": { "type": "array", "items": { "$ref": "#/components/schemas/Zone" } }
-                  }
+                  "$ref": "#/components/schemas/EventDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/sync/batch": {
+      "post": {
+        "tags": [
+          "Sync"
+        ],
+        "summary": "Sincronizar lote de eventos gerados offline",
+        "description": "Endpoint de reconcilia\u00e7\u00e3o para o SDK ap\u00f3s retorno de conectividade.\n\nO SDK submete todos os eventos gerados localmente durante o per\u00edodo offline.\nA Wede executa:\n1. Valida\u00e7\u00e3o de integridade (hash + assinatura por evento)\n2. Deduplica\u00e7\u00e3o por `idempotency_key`\n3. Resolu\u00e7\u00e3o de conflitos por timestamp e regras do tenant\n4. Actualiza\u00e7\u00e3o do estado de cada evento no sistema central\n\nO lote \u00e9 processado atomicamente por grupo de `idempotency_key`.\nEventos inv\u00e1lidos s\u00e3o rejeitados individualmente sem afectar o lote.\n",
+        "operationId": "sync_batch",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncBatchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado da sincroniza\u00e7\u00e3o por evento",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncBatchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "413": {
+            "description": "Lote excede limite (m\u00e1ximo 500 eventos por chamada)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -166,93 +420,2748 @@
         }
       }
     },
-    "/v1/webhooks": {
+    "/sync/status": {
       "get": {
-        "summary": "List Webhooks",
-        "operationId": "listWebhooks",
-        "tags": ["Webhooks"],
+        "tags": [
+          "Sync"
+        ],
+        "summary": "Estado de sincroniza\u00e7\u00e3o do tenant",
+        "description": "Retorna m\u00e9tricas de sincroniza\u00e7\u00e3o: eventos pendentes, sincronizados,\nfalhados e em conflito. \u00datil para monitoriza\u00e7\u00e3o e alertas.\n",
+        "operationId": "sync_status",
         "responses": {
-          "200": { "description": "List of webhooks" }
+          "200": {
+            "description": "Estado de sincroniza\u00e7\u00e3o",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/connectivity/status": {
+      "get": {
+        "tags": [
+          "Connectivity"
+        ],
+        "summary": "Estado de conectividade por zona",
+        "description": "Retorna o estado actual de conectividade para as zonas do tenant.\n\nEstados poss\u00edveis: `online` | `degraded` | `sms_only` | `voice_only` | `offline`\n\nO SDK consulta este endpoint periodicamente (quando online) para\nactualizar as pol\u00edticas de fallback locais.\n",
+        "operationId": "connectivity_status",
+        "parameters": [
+          {
+            "name": "zone_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtrar por zona espec\u00edfica (omitir para todas as zonas do tenant)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado de conectividade",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectivityStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/connectivity/report": {
+      "post": {
+        "tags": [
+          "Connectivity"
+        ],
+        "summary": "Reportar estado de conectividade (SDK)",
+        "description": "O SDK reporta o estado de conectividade detectado localmente.\nEstes dados alimentam o mapa de cobertura global Wede e as pol\u00edticas\nde fallback adaptativas por zona.\n",
+        "operationId": "connectivity_report",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectivityReportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Reporte aceite"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/webhooks": {
+      "get": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Listar webhooks registados",
+        "operationId": "webhooks_list",
+        "responses": {
+          "200": {
+            "description": "Lista de webhooks do tenant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       },
       "post": {
-        "summary": "Create Webhook",
-        "operationId": "createWebhook",
-        "tags": ["Webhooks"],
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Registar webhook",
+        "description": "Regista um endpoint para receber notifica\u00e7\u00f5es de eventos Wede.\n\n**Eventos de webhook dispon\u00edveis:**\n- `event.status_changed` \u2014 mudan\u00e7a de estado no ciclo de vida\n- `event.delivered` \u2014 confirma\u00e7\u00e3o de entrega pelo canal activo\n- `event.failed` \u2014 falha ap\u00f3s todas as tentativas de fallback\n- `sync.completed` \u2014 sincroniza\u00e7\u00e3o offline conclu\u00edda\n- `connectivity.degraded` \u2014 degrada\u00e7\u00e3o de conectividade numa zona\n- `connectivity.restored` \u2014 restauro de conectividade numa zona\n- `assignment.created` \u2014 novo despacho de equipa criado\n\nA Wede assina cada payload com `X-Wede-Signature` (HMAC-SHA256).\nO integrador deve validar esta assinatura antes de processar.\n",
+        "operationId": "webhooks_create",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": ["url", "events"],
-                "properties": {
-                  "url": { "type": "string", "format": "uri" },
-                  "events": { "type": "array", "items": { "type": "string" }, "example": ["event.delivered", "zone.state_changed"] }
-                }
+                "$ref": "#/components/schemas/WebhookCreateRequest"
+              },
+              "example": {
+                "url": "https://your-system.example.com/wede-webhook",
+                "events": [
+                  "event.status_changed",
+                  "event.failed",
+                  "sync.completed",
+                  "connectivity.degraded"
+                ],
+                "secret": "your-hmac-secret-minimum-32-characters-here",
+                "active": true
               }
             }
           }
         },
         "responses": {
-          "201": { "description": "Webhook created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Webhook" } } } }
+          "201": {
+            "description": "Webhook criado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       }
     },
-    "/v1/tenant/me": {
-      "get": {
-        "summary": "Get Tenant",
-        "operationId": "getTenant",
-        "tags": ["Tenant"],
+    "/webhooks/{webhook_id}": {
+      "delete": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Remover webhook",
+        "operationId": "webhooks_delete",
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
-          "200": { "description": "Tenant details" }
+          "204": {
+            "description": "Webhook removido"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
         }
       }
     },
-    "/v1/tenant/usage": {
-      "get": {
-        "summary": "Get Usage",
-        "operationId": "getUsage",
-        "tags": ["Tenant"],
-        "responses": {
-          "200": { "description": "Usage statistics for current billing period" }
-        }
-      }
-    },
-    "/v1/connectivity/status": {
-      "get": {
-        "summary": "Get Connectivity Status",
-        "operationId": "getConnectivity",
-        "tags": ["Connectivity"],
-        "responses": {
-          "200": { "description": "Current connectivity state per zone" }
-        }
-      }
-    },
-    "/v1/auth/login": {
+    "/webhooks/{webhook_id}/test": {
       "post": {
-        "summary": "Login",
-        "operationId": "login",
-        "tags": ["Authentication"],
-        "security": [],
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Testar webhook",
+        "description": "Envia um payload de teste para verificar conectividade e assinatura.",
+        "operationId": "webhooks_test",
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado do teste",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookTestResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/tenant/me": {
+      "get": {
+        "tags": [
+          "Tenant"
+        ],
+        "summary": "Perfil e configura\u00e7\u00e3o do tenant autenticado",
+        "description": "Retorna a configura\u00e7\u00e3o completa do tenant: verticais activas,\nzonas, feature flags, limites de uso e estado da licen\u00e7a.\n",
+        "operationId": "tenant_me",
+        "responses": {
+          "200": {
+            "description": "Perfil do tenant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/tenant/usage": {
+      "get": {
+        "tags": [
+          "Tenant"
+        ],
+        "summary": "M\u00e9tricas de uso do tenant",
+        "description": "Retorna consumo de eventos, mensagens, fallbacks e tokens SDK\npara o per\u00edodo especificado. Usado para controlo de billing e alertas.\n",
+        "operationId": "tenant_usage",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "granularity",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "hour",
+                "day",
+                "week",
+                "month"
+              ],
+              "default": "day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "M\u00e9tricas de uso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantUsageResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/tenant/zones": {
+      "get": {
+        "tags": [
+          "Tenant"
+        ],
+        "summary": "Listar zonas do tenant",
+        "description": "Retorna todas as zonas configuradas para o tenant autenticado.",
+        "operationId": "tenant_zones_list",
+        "responses": {
+          "200": {
+            "description": "Lista de zonas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "zones": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ZoneResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tenant"
+        ],
+        "summary": "Criar zona",
+        "description": "Cria uma nova zona e associa-a ao tenant autenticado.",
+        "operationId": "tenant_zones_create",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZoneCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Zona criada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZoneResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+            "description": "Zona j\u00e1 existe para este tenant"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/tenant/zones/{zone_code}": {
+      "get": {
+        "tags": [
+          "Tenant"
+        ],
+        "summary": "Obter zona por c\u00f3digo",
+        "operationId": "tenant_zones_get",
+        "parameters": [
+          {
+            "name": "zone_code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "zone_lisbon_central"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Zona encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZoneResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Tenant"
+        ],
+        "summary": "Actualizar zona",
+        "operationId": "tenant_zones_update",
+        "parameters": [
+          {
+            "name": "zone_code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZoneUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Zona actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZoneResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tenant"
+        ],
+        "summary": "Eliminar zona",
+        "operationId": "tenant_zones_delete",
+        "parameters": [
+          {
+            "name": "zone_code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Zona eliminada"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/parsers": {
+      "get": {
+        "summary": "List parsers",
+        "tags": [
+          "Parsers"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of parsers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Parser"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create parser",
+        "tags": [
+          "Parsers"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateParser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Parser created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Parser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/parsers/{parser_id}": {
+      "get": {
+        "summary": "Get parser",
+        "tags": [
+          "Parsers"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "parser_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Parser details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Parser"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update parser",
+        "tags": [
+          "Parsers"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "parser_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateParser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parser updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Parser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/parsers/vertical/{vertical}/active": {
+      "get": {
+        "summary": "Get active parser for vertical",
+        "tags": [
+          "Parsers"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vertical",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "healthcare",
+                "banking",
+                "emergency",
+                "logistics",
+                "telecom",
+                "gov"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Active parser for vertical",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Parser"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/onboarding/register": {
+      "post": {
+        "summary": "Register new account",
+        "tags": [
+          "Onboarding"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["email", "password"],
+                "required": [
+                  "name",
+                  "email",
+                  "password",
+                  "country"
+                ],
                 "properties": {
-                  "email": { "type": "string", "format": "email" },
-                  "password": { "type": "string" }
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8
+                  },
+                  "country": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2
+                  },
+                  "verticals": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "healthcare",
+                        "banking",
+                        "telecom",
+                        "delivery",
+                        "events",
+                        "gov",
+                        "other"
+                      ]
+                    }
+                  }
                 }
               }
             }
           }
         },
         "responses": {
-          "200": { "description": "JWT token issued" },
-          "401": { "description": "Invalid credentials" }
+          "201": {
+            "description": "Account created \u2014 verification email sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "pending_verification"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already registered"
+          }
+        }
+      }
+    },
+    "/onboarding/verify": {
+      "post": {
+        "summary": "Verify account email",
+        "tags": [
+          "Onboarding"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account activated"
+          },
+          "404": {
+            "description": "Invalid token"
+          },
+          "410": {
+            "description": "Token expired"
+          }
+        }
+      }
+    },
+    "/onboarding/status": {
+      "get": {
+        "summary": "Get onboarding status",
+        "tags": [
+          "Onboarding"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Onboarding status"
+          }
+        }
+      }
+    },
+    "/tenant/billing": {
+      "get": {
+        "summary": "Get tenant billing info",
+        "tags": [
+          "Tenant"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Billing details including plan, usage and channel costs"
+          }
+        }
+      }
+    },
+    "/tenant/my-countries": {
+      "get": {
+        "summary": "Get countries assigned to country admin",
+        "tags": [
+          "Tenant"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Assigned countries with plans, channels and tenants"
+          }
+        }
+      }
+    },
+    "/financial/overview": {
+      "get": {
+        "summary": "Financial overview by country",
+        "tags": [
+          "Financial"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Global margin by country"
+          }
+        }
+      }
+    },
+    "/financial/countries/{code}": {
+      "get": {
+        "summary": "Financial detail for a country",
+        "tags": [
+          "Financial"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Financial detail for country"
+          }
+        }
+      }
+    },
+    "/integrations": {
+      "get": {
+        "summary": "List integrations",
+        "tags": [
+          "Integrations"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of integrations"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create integration",
+        "tags": [
+          "Integrations"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "category",
+                  "provider_type"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string"
+                  },
+                  "provider_type": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "credentials": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Integration created"
+          }
+        }
+      }
+    },
+    "/integrations/{id}": {
+      "patch": {
+        "summary": "Update integration",
+        "tags": [
+          "Integrations"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "credentials": {
+                    "type": "object"
+                  },
+                  "is_active": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Integration updated"
+          }
+        }
+      }
+    },
+    "/integrations/{id}/countries": {
+      "get": {
+        "summary": "List country assignments for integration",
+        "tags": [
+          "Integrations"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Country assignments"
+          }
+        }
+      },
+      "post": {
+        "summary": "Add country assignment",
+        "tags": [
+          "Integrations"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "country_code",
+                  "channel"
+                ],
+                "properties": {
+                  "country_code": {
+                    "type": "string"
+                  },
+                  "channel": {
+                    "type": "string"
+                  },
+                  "priority": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Assignment created"
+          }
+        }
+      }
+    },
+    "/integrations/{id}/tenants": {
+      "get": {
+        "summary": "List tenant assignments for integration",
+        "tags": [
+          "Integrations"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tenant assignments"
+          }
+        }
+      },
+      "post": {
+        "summary": "Add tenant assignment",
+        "tags": [
+          "Integrations"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "tenant_id"
+                ],
+                "properties": {
+                  "tenant_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Assignment created"
+          }
+        }
+      }
+    },
+    "/providers/countries/{code}": {
+      "get": {
+        "summary": "List providers for country",
+        "tags": [
+          "Providers"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Providers for country"
+          }
+        }
+      },
+      "post": {
+        "summary": "Add provider for country",
+        "tags": [
+          "Providers"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "channel",
+                  "provider_name",
+                  "provider_type"
+                ],
+                "properties": {
+                  "channel": {
+                    "type": "string"
+                  },
+                  "provider_name": {
+                    "type": "string"
+                  },
+                  "provider_type": {
+                    "type": "string"
+                  },
+                  "priority": {
+                    "type": "integer"
+                  },
+                  "config": {
+                    "type": "object"
+                  },
+                  "is_active": {
+                    "type": "boolean"
+                  },
+                  "notes": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Provider added"
+          }
+        }
+      }
+    },
+    "/admin/tenants": {
+      "get": {
+        "summary": "List all tenants",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All tenants with plan info"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create tenant",
+        "tags": [
+          "Admin"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "email"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "country": {
+                    "type": "string"
+                  },
+                  "license_type": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tenant created"
+          }
+        }
+      }
+    },
+    "/sandbox/simulate-connectivity": {
+      "post": {
+        "tags": [
+          "Sandbox"
+        ],
+        "summary": "Simular estado de conectividade (sandbox only)",
+        "description": "For\u00e7a um estado de conectividade espec\u00edfico para uma zona no ambiente sandbox.\nPermite ao integrador testar o comportamento da sua aplica\u00e7\u00e3o em cada\nn\u00edvel de fallback antes de ir a produ\u00e7\u00e3o.\n\n**Apenas dispon\u00edvel em** `sandbox.api.wede.pt`.\n",
+        "operationId": "sandbox_simulate_connectivity",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboxSimulateRequest"
+              },
+              "examples": {
+                "simulate_sms_only": {
+                  "summary": "Simular modo SMS apenas",
+                  "value": {
+                    "zone_id": "zone_test_01",
+                    "connectivity_state": "sms_only",
+                    "duration_seconds": 120
+                  }
+                },
+                "simulate_full_offline": {
+                  "summary": "Simular offline total",
+                  "value": {
+                    "zone_id": "zone_test_01",
+                    "connectivity_state": "offline",
+                    "duration_seconds": 60
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Simula\u00e7\u00e3o activa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboxSimulateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "description": "Endpoint n\u00e3o dispon\u00edvel em produ\u00e7\u00e3o",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Wede-API-Key",
+        "description": "API Key emitida pela Wede no onboarding do tenant.\nFormato: `wede_live_<32chars>` (produ\u00e7\u00e3o) ou `wede_test_<32chars>` (sandbox).\n"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT obtido em POST /auth/token. TTL padrao: 1h."
+      }
+    },
+    "parameters": {
+      "PageCursor": {
+        "name": "cursor",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        },
+        "description": "Cursor opaco para pagina\u00e7\u00e3o (obtido de `next_cursor` na resposta anterior)"
+      },
+      "PageLimit": {
+        "name": "limit",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200,
+          "default": 50
+        },
+        "description": "N\u00famero m\u00e1ximo de resultados por p\u00e1gina"
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "API Key inv\u00e1lida ou ausente",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "unauthorized",
+              "message": "API Key inv\u00e1lida ou expirada.",
+              "request_id": "req_abc123"
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Payload inv\u00e1lido",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Recurso n\u00e3o encontrado",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "UnprocessableEntity": {
+        "description": "Payload v\u00e1lido mas semanticamente inaceit\u00e1vel",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Limite de chamadas excedido",
+        "headers": {
+          "X-RateLimit-Limit": {
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Remaining": {
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "X-RateLimit-Reset": {
+            "schema": {
+              "type": "integer",
+              "description": "Unix timestamp do reset"
+            }
+          },
+          "Retry-After": {
+            "schema": {
+              "type": "integer"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "AuthTokenRequest": {
+        "type": "object",
+        "required": [
+          "api_key"
+        ],
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "description": "API Key do tenant"
+          },
+          "scope": {
+            "type": "string",
+            "description": "Espa\u00e7o-separado de permiss\u00f5es solicitadas",
+            "example": "events:write events:read sync:write webhooks:read"
+          },
+          "ttl_seconds": {
+            "type": "integer",
+            "minimum": 300,
+            "maximum": 86400,
+            "default": 3600,
+            "description": "Dura\u00e7\u00e3o do token em segundos"
+          }
+        }
+      },
+      "AuthTokenResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "JWT de sess\u00e3o"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "AuthRotateResponse": {
+        "type": "object",
+        "properties": {
+          "new_api_key": {
+            "type": "string"
+          },
+          "previous_key_expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Momento em que a chave anterior \u00e9 invalidada (per\u00edodo de gra\u00e7a)"
+          }
+        }
+      },
+      "EventSubmitRequest": {
+        "type": "object",
+        "required": [
+          "type",
+          "vertical",
+          "priority",
+          "idempotency_key",
+          "payload"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "EMERGENCY",
+              "PAYMENT",
+              "BOOKING",
+              "STATUS_UPDATE",
+              "IDENTITY_CONFIRM",
+              "DISPATCH"
+            ]
+          },
+          "vertical": {
+            "type": "string",
+            "enum": [
+              "healthcare",
+              "banking",
+              "telecom",
+              "delivery",
+              "events",
+              "gov"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "normal",
+              "high",
+              "critical"
+            ],
+            "description": "Define a ordem de processamento e o canal m\u00ednimo de fallback.\n`critical` garante entrega mesmo em modo voice_only.\n"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "UUID v4 gerado pelo integrador. Garante que o mesmo evento n\u00e3o \u00e9\nprocessado mais de uma vez, mesmo em caso de retry ou sync offline.\n"
+          },
+          "payload": {
+            "type": "object",
+            "description": "Corpo do evento espec\u00edfico do tipo. Schema validado contra o tipo declarado.\nVaria por `type` e `vertical`. Ver exemplos na documenta\u00e7\u00e3o de cada vertical.\n"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "zone_id": {
+                "type": "string",
+                "description": "Zona geogr\u00e1fica onde o evento foi gerado"
+              },
+              "operator_id": {
+                "type": "string",
+                "description": "Operador ou utilizador de campo que submeteu o evento"
+              },
+              "sdk_version": {
+                "type": "string",
+                "description": "Vers\u00e3o do SDK (preenchido automaticamente pelo SDK)"
+              },
+              "offline_generated_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Timestamp local de gera\u00e7\u00e3o (quando offline). Preenchido pelo SDK."
+              },
+              "connectivity_state_at_generation": {
+                "type": "string",
+                "enum": [
+                  "online",
+                  "degraded",
+                  "sms_only",
+                  "voice_only",
+                  "offline"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "EventSubmitResponse": {
+        "type": "object",
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identificador imut\u00e1vel do evento na plataforma Wede"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing"
+            ]
+          },
+          "channel_selected": {
+            "type": "string",
+            "enum": [
+              "rest_full",
+              "rest_compressed",
+              "sms",
+              "voice",
+              "queued_offline"
+            ],
+            "description": "Canal seleccionado para entrega neste momento"
+          },
+          "estimated_delivery_ms": {
+            "type": "integer",
+            "description": "Estimativa de lat\u00eancia de entrega em milissegundos (null se offline)",
+            "nullable": true
+          },
+          "request_id": {
+            "type": "string"
+          }
+        }
+      },
+      "EventListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventSummary"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "total_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "EventSummary": {
+        "type": "object",
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "vertical": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "assigned",
+              "in_progress",
+              "completed",
+              "failed",
+              "syncing"
+            ]
+          },
+          "channel_used": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "zone_id": {
+            "type": "string"
+          }
+        }
+      },
+      "EventDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventSummary"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "payload": {
+                "type": "object"
+              },
+              "metadata": {
+                "type": "object"
+              },
+              "lifecycle": {
+                "type": "array",
+                "description": "Hist\u00f3rico completo de estados com timestamps",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "channel": {
+                      "type": "string"
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "fallback_attempts": {
+                "type": "array",
+                "description": "Tentativas de fallback por canal",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "channel": {
+                      "type": "string"
+                    },
+                    "attempted_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "result": {
+                      "type": "string",
+                      "enum": [
+                        "success",
+                        "failed",
+                        "timeout"
+                      ]
+                    },
+                    "error_code": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "SyncBatchRequest": {
+        "type": "object",
+        "required": [
+          "events"
+        ],
+        "properties": {
+          "events": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "type": "object",
+              "required": [
+                "idempotency_key",
+                "type",
+                "vertical",
+                "priority",
+                "payload",
+                "offline_generated_at",
+                "integrity_hash"
+              ],
+              "properties": {
+                "idempotency_key": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "vertical": {
+                  "type": "string"
+                },
+                "priority": {
+                  "type": "string"
+                },
+                "payload": {
+                  "type": "object"
+                },
+                "offline_generated_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "connectivity_state_at_generation": {
+                  "type": "string"
+                },
+                "integrity_hash": {
+                  "type": "string",
+                  "description": "SHA-256 do payload + idempotency_key + offline_generated_at"
+                },
+                "signature": {
+                  "type": "string",
+                  "description": "HMAC-SHA256 assinado com a chave privada do SDK token"
+                }
+              }
+            }
+          }
+        }
+      },
+      "SyncBatchResponse": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer"
+              },
+              "accepted": {
+                "type": "integer"
+              },
+              "duplicates": {
+                "type": "integer"
+              },
+              "rejected": {
+                "type": "integer"
+              },
+              "conflicts": {
+                "type": "integer"
+              }
+            }
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "idempotency_key": {
+                  "type": "string"
+                },
+                "event_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "nullable": true
+                },
+                "result": {
+                  "type": "string",
+                  "enum": [
+                    "accepted",
+                    "duplicate",
+                    "rejected",
+                    "conflict"
+                  ]
+                },
+                "error_code": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "error_message": {
+                  "type": "string",
+                  "nullable": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "SyncStatusResponse": {
+        "type": "object",
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pending_sync": {
+            "type": "integer",
+            "description": "Eventos gerados offline ainda n\u00e3o sincronizados"
+          },
+          "synced_24h": {
+            "type": "integer"
+          },
+          "failed_sync": {
+            "type": "integer"
+          },
+          "conflicts": {
+            "type": "integer"
+          },
+          "last_sync_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "ZoneCreateRequest": {
+        "type": "object",
+        "required": [
+          "zone_code",
+          "name",
+          "country"
+        ],
+        "properties": {
+          "zone_code": {
+            "type": "string",
+            "example": "zone_lisbon_central"
+          },
+          "name": {
+            "type": "string",
+            "example": "Lisboa Central"
+          },
+          "country": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "example": "PT"
+          },
+          "region": {
+            "type": "string",
+            "example": "Lisboa"
+          },
+          "lat_center": {
+            "type": "number",
+            "format": "float",
+            "example": 38.7169
+          },
+          "lng_center": {
+            "type": "number",
+            "format": "float",
+            "example": -9.1399
+          },
+          "verticals_active": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ZoneUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "lat_center": {
+            "type": "number"
+          },
+          "lng_center": {
+            "type": "number"
+          },
+          "connectivity_state": {
+            "type": "string",
+            "enum": [
+              "online",
+              "degraded",
+              "sms_only",
+              "offline"
+            ]
+          },
+          "verticals_active": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ZoneResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "zone_code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "lat_center": {
+            "type": "string"
+          },
+          "lng_center": {
+            "type": "string"
+          },
+          "verticals_active": {
+            "type": "string"
+          },
+          "connectivity_state": {
+            "type": "string",
+            "enum": [
+              "online",
+              "degraded",
+              "sms_only",
+              "offline"
+            ]
+          },
+          "incident_active": {
+            "type": "boolean"
+          },
+          "last_state_change": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ConnectivityStatusResponse": {
+        "type": "object",
+        "properties": {
+          "zones": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "zone_id": {
+                  "type": "string"
+                },
+                "zone_name": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "online",
+                    "degraded",
+                    "sms_only",
+                    "voice_only",
+                    "offline"
+                  ]
+                },
+                "fallback_channel": {
+                  "type": "string",
+                  "enum": [
+                    "rest_full",
+                    "rest_compressed",
+                    "sms",
+                    "voice",
+                    "none"
+                  ]
+                },
+                "last_updated": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "incident_active": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ConnectivityReportRequest": {
+        "type": "object",
+        "required": [
+          "zone_id",
+          "state",
+          "detected_at"
+        ],
+        "properties": {
+          "zone_id": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "online",
+              "degraded",
+              "sms_only",
+              "voice_only",
+              "offline"
+            ]
+          },
+          "detected_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signal_strength_dbm": {
+            "type": "integer",
+            "nullable": true
+          },
+          "network_type": {
+            "type": "string",
+            "enum": [
+              "wifi",
+              "lte",
+              "umts",
+              "edge",
+              "gprs",
+              "gsm",
+              "none"
+            ],
+            "nullable": true
+          },
+          "device_id": {
+            "type": "string",
+            "description": "Identificador an\u00f3nimo do dispositivo SDK"
+          }
+        }
+      },
+      "WebhookCreateRequest": {
+        "type": "object",
+        "required": [
+          "url",
+          "events",
+          "secret"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Endpoint HTTPS do integrador"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "event.status_changed",
+                "event.delivered",
+                "event.failed",
+                "sync.completed",
+                "connectivity.degraded",
+                "connectivity.restored",
+                "assignment.created"
+              ]
+            }
+          },
+          "secret": {
+            "type": "string",
+            "minLength": 32,
+            "description": "Secret para valida\u00e7\u00e3o HMAC-SHA256 da assinatura Wede"
+          },
+          "active": {
+            "type": "boolean",
+            "default": true
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 255
+          }
+        }
+      },
+      "WebhookDetail": {
+        "type": "object",
+        "properties": {
+          "webhook_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_triggered_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "failure_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "WebhookListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookDetail"
+            }
+          }
+        }
+      },
+      "WebhookTestResponse": {
+        "type": "object",
+        "properties": {
+          "webhook_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "test_payload_sent": true,
+          "response_status": {
+            "type": "integer",
+            "nullable": true
+          },
+          "response_time_ms": {
+            "type": "integer",
+            "nullable": true
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TenantProfile": {
+        "type": "object",
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "license_type": {
+            "type": "string",
+            "enum": [
+              "saas_api",
+              "white_label",
+              "franchise"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "suspended",
+              "onboarding"
+            ]
+          },
+          "verticals_active": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "zones": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "zone_id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "country": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "feature_flags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "description": "Feature flags activas para este tenant"
+          },
+          "sla_target_uptime_pct": {
+            "type": "number"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TenantUsageResponse": {
+        "type": "object",
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "period": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "to": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "totals": {
+            "type": "object",
+            "properties": {
+              "events": {
+                "type": "integer"
+              },
+              "offline_events": {
+                "type": "integer"
+              },
+              "sms_messages": {
+                "type": "integer"
+              },
+              "voice_calls": {
+                "type": "integer"
+              },
+              "sync_operations": {
+                "type": "integer"
+              },
+              "fallback_triggers": {
+                "type": "integer"
+              }
+            }
+          },
+          "by_vertical": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "by_channel": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "series": {
+            "type": "array",
+            "description": "S\u00e9rie temporal com granularidade solicitada",
+            "items": {
+              "type": "object",
+              "properties": {
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "events": {
+                  "type": "integer"
+                },
+                "fallback_triggers": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "SandboxSimulateRequest": {
+        "type": "object",
+        "required": [
+          "zone_id",
+          "connectivity_state"
+        ],
+        "properties": {
+          "zone_id": {
+            "type": "string"
+          },
+          "connectivity_state": {
+            "type": "string",
+            "enum": [
+              "online",
+              "degraded",
+              "sms_only",
+              "voice_only",
+              "offline"
+            ]
+          },
+          "duration_seconds": {
+            "type": "integer",
+            "minimum": 5,
+            "maximum": 3600,
+            "default": 60,
+            "description": "Dura\u00e7\u00e3o da simula\u00e7\u00e3o. Ap\u00f3s expirar, volta a `online`."
+          }
+        }
+      },
+      "SandboxSimulateResponse": {
+        "type": "object",
+        "properties": {
+          "zone_id": {
+            "type": "string"
+          },
+          "state_applied": {
+            "type": "string"
+          },
+          "active_until": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ParserField": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "sms_code",
+          "type",
+          "required",
+          "enabled",
+          "offline_capable",
+          "section",
+          "max_bytes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sms_code": {
+            "type": "string",
+            "maxLength": 8
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "string",
+              "number",
+              "boolean",
+              "gps",
+              "text",
+              "timestamp",
+              "enum",
+              "phone",
+              "email",
+              "address",
+              "hardware_id"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "offline_capable": {
+            "type": "boolean"
+          },
+          "section": {
+            "type": "string",
+            "enum": [
+              "core",
+              "location",
+              "human",
+              "hardware",
+              "team",
+              "custom"
+            ]
+          },
+          "max_bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 160
+          },
+          "description": {
+            "type": "string"
+          },
+          "enum_values": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "legal": {
+            "type": "boolean"
+          },
+          "custom": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Parser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "vertical": {
+            "type": "string",
+            "enum": [
+              "healthcare",
+              "banking",
+              "emergency",
+              "logistics",
+              "telecom",
+              "gov"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParserField"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateParser": {
+        "type": "object",
+        "required": [
+          "vertical",
+          "name",
+          "schema"
+        ],
+        "properties": {
+          "vertical": {
+            "type": "string",
+            "enum": [
+              "healthcare",
+              "banking",
+              "emergency",
+              "logistics",
+              "telecom",
+              "gov"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParserField"
+            },
+            "minItems": 1,
+            "maxItems": 50
+          }
+        }
+      },
+      "UpdateParser": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParserField"
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "C\u00f3digo de erro em snake_case",
+            "examples": [
+              "unauthorized",
+              "invalid_payload",
+              "not_found",
+              "rate_limited",
+              "duplicate_event",
+              "integrity_check_failed"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensagem leg\u00edvel por humanos"
+          },
+          "details": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "issue": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "request_id": {
+            "type": "string",
+            "description": "ID da request para correla\u00e7\u00e3o em logs e suporte"
+          },
+          "docs_url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          }
         }
       }
     }
