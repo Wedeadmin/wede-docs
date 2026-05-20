@@ -1,0 +1,66 @@
+---
+title: Sync
+description: How offline event batches are synchronised when connectivity is restored
+---
+
+## What is Sync?
+
+When a device operates offline, events are captured and queued locally. Once connectivity is restored, the Wede SDK submits these events as a batch to the platform for processing, deduplication and delivery.
+
+The sync mechanism ensures that no event is lost, regardless of how long the device was offline or which channel was used for transmission.
+
+## How it works
+
+1. Events are captured and stored locally with an `idempotency_key`
+2. When connectivity is restored, the SDK submits a sync batch via `POST /v1/sync/batch`
+3. Wede processes each event, checks idempotency keys and deduplicates
+4. The platform confirms which events were accepted and which were rejected
+5. Rejected events are returned with a reason — the integrator decides whether to retry
+
+## Idempotency
+
+Every event must have a unique `idempotency_key`. This key is used to prevent duplicate processing if the same batch is submitted more than once — for example, if the network drops mid-submission.
+
+The key should be generated on the device before the event is captured, not at submission time.
+
+```typescript
+const event = {
+  type: 'PAYMENT',
+  idempotency_key: 'device-001-' + Date.now(),
+  payload: { amount: 150.00, currency: 'EUR' }
+}
+```
+
+## Batch submission
+
+```typescript
+import { WedeClient } from '@wede/sdk'
+
+const client = new WedeClient({ apiKey: 'wede_live_YOUR_KEY' })
+
+const result = await client.syncBatch({
+  events: offlineQueue,
+  device_id: 'device-001',
+  captured_at: new Date().toISOString()
+})
+
+console.log(`Accepted: ${result.data.accepted}, Rejected: ${result.data.rejected}`)
+```
+
+## Checking sync status
+
+```typescript
+const status = await client.getSyncStatus(batchId)
+```
+
+## Best practices
+
+- Generate `idempotency_key` at event capture time, not at submission
+- Keep batches under 500 events for optimal performance
+- Always check the `rejected` count and handle rejections
+- Use `device_id` consistently to correlate events from the same device
+- Submit batches as soon as connectivity is restored — do not accumulate indefinitely
+
+## Channels
+
+Sync batches are always submitted via REST. Individual events captured offline may have been transmitted via SMS or other channels — sync consolidates them into a single REST call when connectivity allows.

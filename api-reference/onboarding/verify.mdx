@@ -1,0 +1,38 @@
+---
+title: Verify Email
+description: Activate a registered account using the email verification token
+---
+
+## Endpoint
+## No authentication required
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `token` | string | Yes | 64-character token received by email |
+
+## Example
+
+```bash
+curl -X POST https://api.wede.pt/v1/onboarding/verify \
+  -H "Content-Type: application/json" \
+  -d '{ "token": "your-64-char-token-here" }'
+```
+
+## Response
+
+```json
+{
+  "status": "active",
+  "message": "Account activated. You can now sign in."
+}
+```
+
+## Error codes
+
+| Status | Code | Description |
+|--------|------|-------------|
+| 404 | `invalid_token` | Token not found |
+| 409 | `token_used` | Account already activated |
+| 410 | `token_expired` | Token expired (24h limit) |

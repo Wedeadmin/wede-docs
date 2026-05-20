@@ -27,6 +27,7 @@
               "concepts/offline-first",
               "concepts/zones",
               "concepts/events",
+              "concepts/sync",
               "concepts/connectivity",
               "concepts/verticals",
               "concepts/security",
@@ -55,6 +56,13 @@
             "pages": [
               "api-reference/events/create",
               "api-reference/events/list"
+            ]
+          },
+          {
+            "group": "Sync",
+            "pages": [
+              "api-reference/sync/batch",
+              "api-reference/sync/status"
             ]
           },
           {
@@ -101,6 +109,13 @@
             "pages": [
               "api-reference/teams/list",
               "api-reference/teams/dispatch"
+            ]
+          },
+          {
+            "group": "Onboarding",
+            "pages": [
+              "api-reference/onboarding/register",
+              "api-reference/onboarding/verify"
             ]
           }
         ]

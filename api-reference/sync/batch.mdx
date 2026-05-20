@@ -1,0 +1,47 @@
+---
+title: Sync Batch
+description: Submit a batch of offline-captured events for processing
+---
+
+## Endpoint
+## Authentication
+
+Requires a valid API key with `sync:write` permission.
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `events` | array | Yes | Array of events captured offline |
+| `device_id` | string | No | Device identifier for correlation |
+| `captured_at` | string | Yes | ISO 8601 timestamp of batch capture |
+
+## Example
+
+```bash
+curl -X POST https://api.wede.pt/v1/sync/batch \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "events": [
+      {
+        "type": "PAYMENT",
+        "idempotency_key": "device-001-1716123456789",
+        "vertical": "banking",
+        "payload": { "amount": 150.00, "currency": "EUR" }
+      }
+    ],
+    "device_id": "device-001",
+    "captured_at": "2026-05-20T10:00:00Z"
+  }'
+```
+
+## Response
+
+```json
+{
+  "accepted": 1,
+  "rejected": 0,
+  "batch_id": "batch-uuid"
+}
+```

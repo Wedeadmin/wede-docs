@@ -1,0 +1,44 @@
+---
+title: Register
+description: Create a new wede account — starts in demo mode
+---
+
+## Endpoint
+## No authentication required
+
+This endpoint is public. No API key needed.
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Full name |
+| `email` | string | Yes | Work email address |
+| `password` | string | Yes | Minimum 8 characters |
+| `country` | string | Yes | ISO 3166-1 alpha-2 country code (e.g. `PT`, `AE`, `NG`) |
+| `verticals` | array | No | Areas of interest: `healthcare`, `banking`, `telecom`, `logistics`, `emergency`, `gov`, `other` |
+
+## Example
+
+```bash
+curl -X POST https://api.wede.pt/v1/onboarding/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane Smith",
+    "email": "jane@hospital.org",
+    "password": "SecurePass123",
+    "country": "NG",
+    "verticals": ["healthcare", "emergency"]
+  }'
+```
+
+## Response
+
+```json
+{
+  "status": "pending_verification",
+  "message": "Account created. Check your email to activate your account."
+}
+```
+
+After activation, the account starts in **demo mode** with access to MedCore International sample data. Full access is granted once the account is associated with an organisation by a wede administrator.

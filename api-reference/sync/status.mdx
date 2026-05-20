@@ -1,0 +1,34 @@
+---
+title: Sync Status
+description: Check the processing status of a sync batch
+---
+
+## Endpoint
+## Authentication
+
+Requires a valid API key with `sync:read` permission.
+
+## Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `batch_id` | string | Yes | Batch ID returned from sync/batch |
+
+## Example
+
+```bash
+curl "https://api.wede.pt/v1/sync/status?batch_id=batch-uuid" \
+  -H "x-wede-api-key: wede_live_YOUR_KEY"
+```
+
+## Response
+
+```json
+{
+  "batch_id": "batch-uuid",
+  "status": "processed",
+  "accepted": 1,
+  "rejected": 0,
+  "processed_at": "2026-05-20T10:00:05Z"
+}
+```
