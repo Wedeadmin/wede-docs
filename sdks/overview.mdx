@@ -11,10 +11,13 @@ The official Wede SDK for JavaScript and TypeScript is available on GitHub.
 
 ### Installation
 
+```bash
 npm install @wede/sdk
+```
 
 ### Quick Start
 
+```typescript
 import { WedeClient } from '@wede/sdk'
 
 const client = new WedeClient({ apiKey: 'wede_live_YOUR_KEY' })
@@ -37,20 +40,30 @@ await client.syncBatch({
   device_id: 'device-001',
   captured_at: new Date().toISOString()
 })
+```
 
 ### Available Methods
 
 | Method | Description |
 |--------|-------------|
-| sendEvent(event) | Submit a new event |
-| listEvents(params?) | List events |
-| listZones() | List all zones |
-| getZone(zoneId) | Get a specific zone |
-| syncBatch(batch) | Sync offline events |
-| getConnectivityStatus(zoneId) | Get zone connectivity state |
-| reportConnectivity(report) | Report connectivity state |
-| getTenantInfo() | Get tenant details |
-| getUsage(from, to) | Get usage statistics |
+| `sendEvent(event)` | Submit a new event |
+| `listEvents(params?)` | List events |
+| `listZones()` | List all zones |
+| `getZone(zoneId)` | Get a specific zone |
+| `syncBatch(batch)` | Sync offline events |
+| `getSyncStatus(batchId)` | Get sync batch status |
+| `getConnectivityStatus(zoneId)` | Get zone connectivity state |
+| `reportConnectivity(report)` | Report connectivity state |
+| `listParsers()` | List all parsers |
+| `getParser(parserId)` | Get a specific parser |
+| `getActiveParser(vertical)` | Get active parser for vertical |
+| `createParser(parser)` | Create a new parser |
+| `updateParser(parserId, data)` | Update an existing parser |
+| `listWebhooks()` | List all webhooks |
+| `createWebhook(webhook)` | Create a new webhook |
+| `deleteWebhook(webhookId)` | Delete a webhook |
+| `getTenantInfo()` | Get tenant details |
+| `getUsage(from, to)` | Get usage statistics |
 
 ## Coming Soon
 
