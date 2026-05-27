@@ -1,6 +1,6 @@
 ---
-title: Wede Technology
-description: Operational continuity platform for mission-critical services — works without internet
+title: "Wede Technology"
+description: "Operational continuity platform for mission-critical services — works without internet"
 ---
 
 ## The Problem
@@ -21,29 +21,29 @@ Your teams keep working. Your systems keep running.
 
 Wede is built for organisations where downtime is not an option:
 
-- **Healthcare & Emergency Services** — emergency dispatch, patient monitoring, field medical teams, ambulance coordination
-- **Banking & Financial Services** — payment terminals, ATM networks, field agents, fraud alerts
-- **Logistics & Delivery** — last-mile coordination, fleet management, warehouse operations
-- **Telecommunications** — network operations, field engineer dispatch, infrastructure monitoring
-- **Government & Public Services** — critical infrastructure, border control, utilities, civil protection
+- **Healthcare & Emergency Services** - emergency dispatch, patient monitoring, field medical teams, ambulance coordination and more.
+- **Banking & Financial Services** - payment terminals, ATM networks, field agents, fraud alerts and more
+- **Logistics & Delivery** - last-mile coordination, fleet management, warehouse operations
+- **Telecommunications** - network operations, field engineer dispatch, infrastructure monitoring
+- **Government & Public Services** - critical infrastructure, border control, utilities, civil protection
 
 ## Communication Channels
 
 Wede routes events through multiple channels, automatically selecting the best available option per zone:
 
 | Channel | Description |
-|---------|-------------|
-| **REST Full** | Standard internet — primary channel |
-| **REST Compressed** | Optimised internet — low-bandwidth environments |
-| **SMS** | Cellular SMS — when internet is unavailable |
-| **Voice** | Voice call delivery — for critical alerts |
-| **LoRa** | Long-range IoT — remote and rural areas |
-| **Satellite** | Global satellite coverage — extreme environments |
-| **Edge** | Local edge processing — zero external dependency |
+| --- | --- |
+| **REST Full** | Standard internet - primary channel |
+| **REST Compressed** | Optimised internet - low-bandwidth environments |
+| **Structured Protocols** | when internet is unavailable |
+| **Voice** | Voice call delivery - for critical alerts |
+| **LoRa** | Long-range IoT - remote and rural areas |
+| **Satellite** | Global satellite coverage - extreme environments |
+| **Edge** | Local edge processing - zero external dependency |
 
 ## How It Works
 
-Wede integrates with your existing systems via a simple REST API. You send events — Wede ensures they are delivered.
+Wede integrates with your existing systems via a simple REST API. You send events. Wede ensures they are delivered.
 
 Behind the scenes, Wede monitors connectivity across your operational zones and routes each event through the best available channel. If internet is unavailable, delivery continues through alternative channels until connectivity is restored.
 
@@ -70,4 +70,5 @@ curl -X POST https://api.wede.pt/v1/events \
 [Try the demo](https://app.wede.pt/register) · [Read the Quickstart](/quickstart) · [API Reference](/api-reference/introduction)
 
 ## Base URL
-All API requests are made over HTTPS. The platform is hosted in Europe (GCP europe-west1) with global reach across 190+ countries.
+
+All API requests are made over HTTPS. The platform is hosted in Europe (GCP europe-west1) with global reach across 190\+ countries.
