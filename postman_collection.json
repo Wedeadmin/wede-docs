@@ -1,0 +1,1770 @@
+{
+  "info": {
+    "name": "Wede Resilience API",
+    "description": "Official Postman collection for the Wede Resilience API v1.1",
+    "version": "1.1.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.wede.pt/v1",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "wede_live_YOUR_KEY",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-Wede-API-Key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Obter token de sessão",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "token"
+              ],
+              "variable": []
+            },
+            "description": "Troca a API Key por um JWT de sessão com TTL configurável.\nO JWT é usado para autenticar chamadas subsequentes.\nEm modo offline, o SDK usa a chave pública do tenant para validação local.\n",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Rodar API Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/rotate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "rotate"
+              ],
+              "variable": []
+            },
+            "description": "Gera uma nova API Key para o tenant e invalida a anterior após período de graça\nconfigurável (padrão: 24h). Use para rotação periódica de credenciais.\n"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Submeter evento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "events"
+              ],
+              "variable": []
+            },
+            "description": "Ponto central de entrada para qualquer operação normalizada Wede.\n\nO payload é independente do canal de transporte — a Wede decide\nautomaticamente como encaminhar com base no estado de conectividade\nactual da zona do tenant.\n\n**Tipos de evento suportados em Phase 1:**\n- `EMERGENCY` — emergência médica, incidente técnico, falha de rede\n- `PAYMENT` — pagamento offline, wallet fallback, microfinança\n- `BOOKING` — agendamento de consulta, serviço, recurso\n- `STATUS_UPDATE` — actualização de estado de recurso ou operador\n- `IDENTITY_CONFIRM` — confirmação de identidade em rede degradada\n- `DISPATCH` — despacho de equipa ou recurso de campo\n\nCada evento recebe um `event_id` imutável que persiste através de\ntodos os canais e sincronizações.\n",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar eventos do tenant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "events"
+              ],
+              "variable": []
+            },
+            "description": "Retorna eventos do tenant com filtragem por estado, tipo, vertical e zona.\nPaginação por cursor para suportar volumes elevados.\n"
+          }
+        },
+        {
+          "name": "Consultar estado de um evento",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/:event_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "events",
+                ":event_id"
+              ],
+              "variable": [
+                {
+                  "key": "event_id",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": "Retorna o estado actual e histórico de ciclo de vida de um evento específico.\nInclui o canal efectivamente usado para entrega e todas as tentativas de fallback.\n"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sync",
+      "item": [
+        {
+          "name": "Sincronizar lote de eventos gerados offline",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sync/batch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sync",
+                "batch"
+              ],
+              "variable": []
+            },
+            "description": "Endpoint de reconciliação para o SDK após retorno de conectividade.\n\nO SDK submete todos os eventos gerados localmente durante o período offline.\nA Wede executa:\n1. Validação de integridade (hash + assinatura por evento)\n2. Deduplicação por `idempotency_key`\n3. Resolução de conflitos por timestamp e regras do tenant\n4. Actualização do estado de cada evento no sistema central\n\nO lote é processado atomicamente por grupo de `idempotency_key`.\nEventos inválidos são rejeitados individualmente sem afectar o lote.\n",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Estado de sincronização do tenant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sync/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sync",
+                "status"
+              ],
+              "variable": []
+            },
+            "description": "Retorna métricas de sincronização: eventos pendentes, sincronizados,\nfalhados e em conflito. Útil para monitorização e alertas.\n"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Connectivity",
+      "item": [
+        {
+          "name": "Estado de conectividade por zona",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connectivity/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "connectivity",
+                "status"
+              ],
+              "variable": []
+            },
+            "description": "Retorna o estado actual de conectividade para as zonas do tenant.\n\nEstados possíveis: `online` | `degraded` | `sms_only` | `voice_only` | `offline`\n\nO SDK consulta este endpoint periodicamente (quando online) para\nactualizar as políticas de fallback locais.\n"
+          }
+        },
+        {
+          "name": "Reportar estado de conectividade (SDK)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/connectivity/report",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "connectivity",
+                "report"
+              ],
+              "variable": []
+            },
+            "description": "O SDK reporta o estado de conectividade detectado localmente.\nEstes dados alimentam o mapa de cobertura global Wede e as políticas\nde fallback adaptativas por zona.\n",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "Listar webhooks registados",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/webhooks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "webhooks"
+              ],
+              "variable": []
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Registar webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/webhooks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "webhooks"
+              ],
+              "variable": []
+            },
+            "description": "Regista um endpoint para receber notificações de eventos Wede.\n\n**Eventos de webhook disponíveis:**\n- `event.status_changed` — mudança de estado no ciclo de vida\n- `event.delivered` — confirmação de entrega pelo canal activo\n- `event.failed` — falha após todas as tentativas de fallback\n- `sync.completed` — sincronização offline concluída\n- `connectivity.degraded` — degradação de conectividade numa zona\n- `connectivity.restored` — restauro de conectividade numa zona\n- `assignment.created` — novo despacho de equipa criado\n\nA Wede assina cada payload com `X-Wede-Signature` (HMAC-SHA256).\nO integrador deve validar esta assinatura antes de processar.\n",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover webhook",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/webhooks/:webhook_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "webhooks",
+                ":webhook_id"
+              ],
+              "variable": [
+                {
+                  "key": "webhook_id",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Testar webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/webhooks/:webhook_id/test",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "webhooks",
+                ":webhook_id",
+                "test"
+              ],
+              "variable": [
+                {
+                  "key": "webhook_id",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": "Envia um payload de teste para verificar conectividade e assinatura."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tenant",
+      "item": [
+        {
+          "name": "Perfil e configuração do tenant autenticado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tenant/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tenant",
+                "me"
+              ],
+              "variable": []
+            },
+            "description": "Retorna a configuração completa do tenant: verticais activas,\nzonas, feature flags, limites de uso e estado da licença.\n"
+          }
+        },
+        {
+          "name": "Métricas de uso do tenant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tenant/usage",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tenant",
+                "usage"
+              ],
+              "variable": []
+            },
+            "description": "Retorna consumo de eventos, mensagens, fallbacks e tokens SDK\npara o período especificado. Usado para controlo de billing e alertas.\n"
+          }
+        },
+        {
+          "name": "Listar zonas do tenant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tenant/zones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tenant",
+                "zones"
+              ],
+              "variable": []
+            },
+            "description": "Retorna todas as zonas configuradas para o tenant autenticado."
+          }
+        },
+        {
+          "name": "Criar zona",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tenant/zones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tenant",
+                "zones"
+              ],
+              "variable": []
+            },
+            "description": "Cria uma nova zona e associa-a ao tenant autenticado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Obter zona por código",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tenant/zones/:zone_code",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tenant",
+                "zones",
+                ":zone_code"
+              ],
+              "variable": [
+                {
+                  "key": "zone_code",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Actualizar zona",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tenant/zones/:zone_code",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tenant",
+                "zones",
+                ":zone_code"
+              ],
+              "variable": [
+                {
+                  "key": "zone_code",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Eliminar zona",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tenant/zones/:zone_code",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tenant",
+                "zones",
+                ":zone_code"
+              ],
+              "variable": [
+                {
+                  "key": "zone_code",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get tenant billing info",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tenant/billing",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tenant",
+                "billing"
+              ],
+              "variable": []
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get countries assigned to country admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tenant/my-countries",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tenant",
+                "my-countries"
+              ],
+              "variable": []
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "List API keys",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tenant/api-keys",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tenant",
+                "api-keys"
+              ],
+              "variable": []
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Rotate API key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tenant/api-keys/rotate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tenant",
+                "api-keys",
+                "rotate"
+              ],
+              "variable": []
+            },
+            "description": "Generates a new API key and sets a grace period on the previous key. The previous key remains valid during the grace period to allow zero-downtime rotation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parsers",
+      "item": [
+        {
+          "name": "List parsers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/parsers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "parsers"
+              ],
+              "variable": []
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Create parser",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/parsers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "parsers"
+              ],
+              "variable": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get parser",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/parsers/:parser_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "parsers",
+                ":parser_id"
+              ],
+              "variable": [
+                {
+                  "key": "parser_id",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Update parser",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/parsers/:parser_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "parsers",
+                ":parser_id"
+              ],
+              "variable": [
+                {
+                  "key": "parser_id",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get active parser for vertical",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/parsers/vertical/:vertical/active",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "parsers",
+                "vertical",
+                ":vertical",
+                "active"
+              ],
+              "variable": [
+                {
+                  "key": "vertical",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Onboarding",
+      "item": [
+        {
+          "name": "Register new account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/onboarding/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "onboarding",
+                "register"
+              ],
+              "variable": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"password\": \"\",\n  \"country\": \"\",\n  \"verticals\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verify account email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/onboarding/verify",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "onboarding",
+                "verify"
+              ],
+              "variable": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get onboarding status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/onboarding/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "onboarding",
+                "status"
+              ],
+              "variable": []
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Financial",
+      "item": [
+        {
+          "name": "Financial overview by country",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/overview",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "overview"
+              ],
+              "variable": []
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Financial detail for a country",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/financial/countries/:code",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "financial",
+                "countries",
+                ":code"
+              ],
+              "variable": [
+                {
+                  "key": "code",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Integrations",
+      "item": [
+        {
+          "name": "List integrations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/integrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "integrations"
+              ],
+              "variable": []
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Create integration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/integrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "integrations"
+              ],
+              "variable": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"category\": \"\",\n  \"provider_type\": \"\",\n  \"description\": \"\",\n  \"credentials\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update integration",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/integrations/:id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "integrations",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"credentials\": {},\n  \"is_active\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List country assignments for integration",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/integrations/:id/countries",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "integrations",
+                ":id",
+                "countries"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Add country assignment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/integrations/:id/countries",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "integrations",
+                ":id",
+                "countries"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"country_code\": \"\",\n  \"channel\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List tenant assignments for integration",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/integrations/:id/tenants",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "integrations",
+                ":id",
+                "tenants"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Add tenant assignment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/integrations/:id/tenants",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "integrations",
+                ":id",
+                "tenants"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Providers",
+      "item": [
+        {
+          "name": "List providers for country",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/providers/countries/:code",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "providers",
+                "countries",
+                ":code"
+              ],
+              "variable": [
+                {
+                  "key": "code",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Add provider for country",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/providers/countries/:code",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "providers",
+                "countries",
+                ":code"
+              ],
+              "variable": [
+                {
+                  "key": "code",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channel\": \"\",\n  \"provider_name\": \"\",\n  \"provider_type\": \"\",\n  \"config\": {},\n  \"is_active\": false,\n  \"notes\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "List all tenants",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/tenants",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "tenants"
+              ],
+              "variable": []
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Create tenant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/tenants",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "tenants"
+              ],
+              "variable": []
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"\",\n  \"country\": \"\",\n  \"license_type\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sandbox",
+      "item": [
+        {
+          "name": "Simular estado de conectividade (sandbox only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sandbox/simulate-connectivity",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sandbox",
+                "simulate-connectivity"
+              ],
+              "variable": []
+            },
+            "description": "Força um estado de conectividade específico para uma zona no ambiente sandbox.\nPermite ao integrador testar o comportamento da sua aplicação em cada\nnível de fallback antes de ir a produção.\n\n**Apenas disponível em** `sandbox.api.wede.pt`.\n",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teams",
+      "item": [
+        {
+          "name": "List teams",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/teams",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "teams"
+              ],
+              "variable": []
+            },
+            "description": "Returns all teams for the authenticated tenant, including members and their GPS coordinates."
+          }
+        },
+        {
+          "name": "Get team",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/teams/:teamId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "teams",
+                ":teamId"
+              ],
+              "variable": [
+                {
+                  "key": "teamId",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Update member GPS location",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/teams/:teamId/members/:memberId/location",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "teams",
+                ":teamId",
+                "members",
+                ":memberId",
+                "location"
+              ],
+              "variable": [
+                {
+                  "key": "teamId",
+                  "value": "",
+                  "description": "Path parameter"
+                },
+                {
+                  "key": "memberId",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": "Called by the SDK at configurable intervals to update a field operator's real-time position.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lat\": 38.7169,\n  \"lng\": -9.1395\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dispatch",
+      "item": [
+        {
+          "name": "Score teams by proximity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/teams/dispatch/score",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "teams",
+                "dispatch",
+                "score"
+              ],
+              "variable": []
+            },
+            "description": "Runs the Wede proximity score engine. Returns all teams ranked by distance, equipment match, member availability and vertical capability. The recommended team is flagged.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lat\": 38.7169,\n  \"lng\": -9.1395,\n  \"vertical\": \"healthcare\",\n  \"priority\": \"\",\n  \"required_equipment\": [\n    \"defibrillator\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Dispatch a team",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/teams/dispatch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "teams",
+                "dispatch"
+              ],
+              "variable": []
+            },
+            "description": "Assigns a team to an event. Stores event coordinates for route mapping. Triggers `team.dispatched` webhook.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event_id\": \"\",\n  \"team_id\": \"\",\n  \"notes\": \"\",\n  \"event_lat\": 38.7169,\n  \"event_lng\": -9.1395\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Missions",
+      "item": [
+        {
+          "name": "List missions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/missions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "missions"
+              ],
+              "variable": []
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get mission",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/missions/:missionId",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "missions",
+                ":missionId"
+              ],
+              "variable": [
+                {
+                  "key": "missionId",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Update mission status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/missions/:missionId/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "missions",
+                ":missionId",
+                "status"
+              ],
+              "variable": [
+                {
+                  "key": "missionId",
+                  "value": "",
+                  "description": "Path parameter"
+                }
+              ]
+            },
+            "description": "Called by the field operator SDK to progress the mission lifecycle. Triggers `mission.status_updated` webhook.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"\",\n  \"feedback\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
