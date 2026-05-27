@@ -15,7 +15,7 @@ State changes are detected automatically and trigger channel switching without a
 |-------|-------------|--------|
 | **online** | Full internet connectivity | Primary REST channel active |
 | **degraded** | Reduced bandwidth or reliability | Compressed REST, optimised routing |
-| **sms_only** | Internet unavailable | SMS and voice delivery active |
+| **sms_only** | Internet unavailable | Structured protocols and voice delivery active |
 | **offline** | All external channels down | LoRa, satellite, edge processing |
 
 ## Channel Hierarchy
@@ -81,7 +81,7 @@ Configure webhooks in the [dashboard](https://app.wede.pt/dashboard/webhooks) or
 
 All zone connectivity states are visible in real-time on the [dashboard map](https://app.wede.pt/dashboard). Each zone is represented by a colour-coded marker:
 
-- 🟢 **Green** — online
-- 🟡 **Amber** — degraded or sms_only
-- 🔴 **Red** — offline
-- ⚪ **Pulsing** — incident active
+- 🟢 **Green** - online
+- 🟡 **Amber** - degraded or structured-protocol-only
+- 🔴 **Red** - offline
+- ⚪ **Pulsing** - incident active

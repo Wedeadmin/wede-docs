@@ -1,17 +1,17 @@
 ---
 title: Parsers
-description: Configure how event data is structured, encoded and transmitted across channels — including offline via SMS
+description: Configure how event data is structured, encoded and transmitted across channels - including offline via structured protocols
 ---
 
 ## What is a Parser?
 
-A parser defines the data structure for events in a specific vertical. It controls which fields are collected, how they are encoded for transmission, and whether they can be sent offline via SMS when internet connectivity is unavailable.
+A parser defines the data structure for events in a specific vertical. It controls which fields are collected, how they are encoded for transmission, and whether they can be sent offline via structured protocols when internet connectivity is unavailable.
 
-Each parser belongs to a tenant and is scoped to a vertical — `healthcare`, `banking`, `emergency`, `logistics`, `telecom`, or `gov`. A tenant can have multiple parser versions per vertical, but only one is active at a time.
+Each parser belongs to a tenant and is scoped to a vertical - `healthcare`, `banking`, `emergency`, `logistics`, `telecom`, or `gov`. A tenant can have multiple parser versions per vertical, but only one is active at a time.
 
 ## Why Parsers Matter
 
-In environments where connectivity is unreliable, every byte counts. When an event cannot be sent via REST, Wede falls back to SMS. A parser ensures that the most critical fields are encoded efficiently — fitting into as few SMS segments as possible — while preserving data integrity and legal compliance.
+In environments where connectivity is unreliable, every byte counts. When an event cannot be sent via REST, Wede falls back to structured protocols. A parser ensures that the most critical fields are encoded efficiently - fitting into as few SMS segments as possible - while preserving data integrity and legal compliance.
 
 A well-configured parser means your operations continue without interruption, regardless of network conditions.
 
@@ -21,9 +21,9 @@ Each parser is composed of fields organised into sections:
 
 | Section | Purpose |
 |---------|---------|
-| `core` | Mandatory identifiers and timestamps — always transmitted |
+| `core` | Mandatory identifiers and timestamps - always transmitted |
 | `location` | GPS coordinates and addresses |
-| `human` | Person data — subject to legal and GDPR requirements |
+| `human` | Person data - subject to legal and GDPR requirements |
 | `hardware` | Equipment, vehicle and device identifiers |
 | `team` | Responder team, dispatch and capacity data |
 | `custom` | Tenant-defined free fields |
@@ -44,12 +44,12 @@ Each parser is composed of fields organised into sections:
 | `address` | Free text address | 60 |
 | `hardware_id` | Device or equipment ID | 16 |
 
-## SMS Encoding
+## Structured Encoding
 
-Wede calculates the estimated byte size of each enabled field and the total payload size. If the payload exceeds 140 bytes, it is automatically fragmented into multiple SMS messages and reassembled at the destination.
+Wede calculates the estimated byte size of each enabled field and the total payload size. If the payload exceeds 140 bytes, it is automatically fragmented and reassembled at the destination - transparently, without changes to your integration.
 
-Each field is encoded as `sms_code=value` pairs. The `sms_code` is a short identifier (up to 8 characters) that minimises transmission size.
-Fields marked `offline_capable: false` are excluded when transmitting via SMS.
+Each field is encoded as compact key-value pairs. The field code is a short identifier (up to 8 characters) that minimises transmission size.
+Fields marked `offline_capable: false` are excluded when transmitting via structured protocols.
 
 ## Legal Fields
 
@@ -68,7 +68,7 @@ When you update a parser schema, Wede creates a new version. The previous versio
 | `company_admin`, `company_tech`, `operational_supervisor`, `corporate_client` | Own tenant parsers, own verticals only |
 | `field_operator`, `api_user` | No parser access |
 
-## Example — Healthcare Parser
+## Example - Healthcare Parser
 
 A minimal healthcare parser for offline-capable emergency events:
 
@@ -86,4 +86,4 @@ A minimal healthcare parser for offline-capable emergency events:
 }
 ```
 
-This parser fits in a single SMS segment (approximately 90 bytes), ensuring delivery even on the most degraded networks.
+This parser fits in a single protocol unit (approximately 90 bytes), ensuring delivery even on the most degraded networks.

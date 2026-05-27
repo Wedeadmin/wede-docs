@@ -1,5 +1,5 @@
 ---
-title: Banking & Fintech — Field Agent Dispatch
+title: Banking & Fintech - Field Agent Dispatch
 description: Complete integration example for field banking agent coordination with DORA compliance
 ---
 
@@ -7,7 +7,7 @@ description: Complete integration example for field banking agent coordination w
 
 This example covers field banking agent dispatch for mobile money and agent banking operations. An incident is reported (ATM fault, fraud alert, field agent request), the system scores available agents by proximity and capability, dispatches the best match, and tracks the mission to completion.
 
-Works fully offline — critical for agent banking in rural areas with degraded connectivity.
+Works fully offline - critical for agent banking in rural areas with degraded connectivity.
 
 ---
 
@@ -118,7 +118,7 @@ await client.sendEvent({
 })
 ```
 
-If internet is unavailable, Wede automatically routes via SMS or voice — the payload is fragmented, transmitted, and reassembled at the destination without any changes to your code.
+If internet is unavailable, Wede automatically routes via structured protocols - the payload is fragmented, transmitted, and reassembled at the destination without any changes to your code.
 
 ---
 
@@ -138,8 +138,8 @@ console.log(`Dispatches: ${billing.data.usage.dispatches_total}`)
 
 | DORA Requirement | This Integration |
 |-----------------|-----------------|
-| ICT risk management | Multi-channel fallback — SMS, voice, LoRa automatic |
-| Operational continuity | Offline SDK — operations continue without internet |
+| ICT risk management | Multi-channel fallback - structured protocols, voice, LoRa automatic |
+| Operational continuity | Offline SDK - operations continue without internet |
 | Incident reporting | Immutable audit log, webhook notifications per event |
 | Data integrity | SHA-256 per event, idempotency key, reconciliation |
 | Access controls | RBAC per role, API key rotation, JWT revocation |

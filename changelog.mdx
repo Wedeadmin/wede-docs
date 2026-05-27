@@ -3,39 +3,39 @@ title: Changelog
 description: API and SDK version history
 ---
 
-## v1.1.0 — 27 May 2026
+## v1.1.0 - 27 May 2026
 
-### New — Teams and Dispatch
+### New - Teams and Dispatch
 
-- `GET /v1/teams` — list teams with members and GPS coordinates
-- `GET /v1/teams/:id` — get team detail
-- `PATCH /v1/teams/:id/members/:memberId/location` — update member GPS location
-- `POST /v1/teams/dispatch/score` — proximity score engine — ranks teams by distance, equipment, availability and vertical capability
-- `POST /v1/teams/dispatch` — dispatch a team to an event — stores `event_lat`/`event_lng` for route mapping
+- `GET /v1/teams` - list teams with members and GPS coordinates
+- `GET /v1/teams/:id` - get team detail
+- `PATCH /v1/teams/:id/members/:memberId/location` - update member GPS location
+- `POST /v1/teams/dispatch/score` - proximity score engine - ranks teams by distance, equipment, availability and vertical capability
+- `POST /v1/teams/dispatch` - dispatch a team to an event - stores `event_lat`/`event_lng` for route mapping
 
-### New — Missions
+### New - Missions
 
-- `GET /v1/missions` — list missions with filters by team, status and limit
-- `GET /v1/missions/:id` — get mission detail
-- `PATCH /v1/missions/:id/status` — update mission lifecycle status with optional feedback payload
+- `GET /v1/missions` - list missions with filters by team, status and limit
+- `GET /v1/missions/:id` - get mission detail
+- `PATCH /v1/missions/:id/status` - update mission lifecycle status with optional feedback payload
 
-### New — Billing
+### New - Billing
 
-- `GET /v1/tenant/billing` — current plan, annual usage counters, channel costs and available plans by country
+- `GET /v1/tenant/billing` - current plan, annual usage counters, channel costs and available plans by country
 
-### New — API Key Management
+### New - API Key Management
 
-- `GET /v1/tenant/api-keys` — list active API keys (prefix only)
-- `POST /v1/tenant/api-keys/rotate` — rotate API key with configurable grace period — previous key remains valid during transition
+- `GET /v1/tenant/api-keys` - list active API keys (prefix only)
+- `POST /v1/tenant/api-keys/rotate` - rotate API key with configurable grace period - previous key remains valid during transition
 
 ### Security
 
-- Brute force protection — account locked for 15 minutes after 5 consecutive failed login attempts — self-unlock via password reset
-- JWT token versioning — tokens immediately invalidated when user is suspended or reactivated
-- `/metrics` endpoint protected — requires `x-wede-internal` header with secret stored in GCP Secret Manager
+- Brute force protection - account locked for 15 minutes after 5 consecutive failed login attempts - self-unlock via password reset
+- JWT token versioning - tokens immediately invalidated when user is suspended or reactivated
+- `/metrics` endpoint protected - requires `x-wede-internal` header with secret stored in GCP Secret Manager
 - CORS restricted to production origins only
 
-### SDKs — v1.1
+### SDKs - v1.1
 
 All four SDKs updated with Teams, Dispatch, Missions and Billing methods:
 
@@ -46,31 +46,31 @@ All four SDKs updated with Teams, Dispatch, Missions and Billing methods:
 
 ---
 
-## v1.0.0 — May 2026
+## v1.0.0 - May 2026
 
 ### Core Platform
 
-- `POST /v1/events` — submit events with automatic channel selection
-- `GET /v1/events` — list events by zone and vertical
-- `POST /v1/sync/batch` — sync offline event batches
-- `GET /v1/sync/status` — check sync batch status
-- `GET /v1/connectivity/status` — zone connectivity state
-- `POST /v1/connectivity/report` — report connectivity from field device
-- `GET /v1/zones` — list zones with geofence boundaries
-- `GET /v1/parsers` — list event parsers by vertical
-- `GET /v1/tenant/me` — tenant info and feature flags
-- `GET /v1/tenant/usage` — usage stats by period
-- `POST /v1/webhooks` — create webhook
-- `GET /v1/webhooks` — list webhooks
-- `DELETE /v1/webhooks/:id` — delete webhook
+- `POST /v1/events` - submit events with automatic channel selection
+- `GET /v1/events` - list events by zone and vertical
+- `POST /v1/sync/batch` - sync offline event batches
+- `GET /v1/sync/status` - check sync batch status
+- `GET /v1/connectivity/status` - zone connectivity state
+- `POST /v1/connectivity/report` - report connectivity from field device
+- `GET /v1/zones` - list zones with geofence boundaries
+- `GET /v1/parsers` - list event parsers by vertical
+- `GET /v1/tenant/me` - tenant info and feature flags
+- `GET /v1/tenant/usage` - usage stats by period
+- `POST /v1/webhooks` - create webhook
+- `GET /v1/webhooks` - list webhooks
+- `DELETE /v1/webhooks/:id` - delete webhook
 
 ### Auth
 
-- `POST /v1/auth/login` — email and password login — returns JWT
-- `POST /v1/auth/forgot-password` — request password reset
-- `POST /v1/auth/reset-password` — reset password with token
-- `POST /v1/auth/change-password` — change password (authenticated)
-- `POST /v1/auth/verify` — verify account activation token
+- `POST /v1/auth/login` - email and password login - returns JWT
+- `POST /v1/auth/forgot-password` - request password reset
+- `POST /v1/auth/reset-password` - reset password with token
+- `POST /v1/auth/change-password` - change password (authenticated)
+- `POST /v1/auth/verify` - verify account activation token
 
 ### Infrastructure
 
@@ -81,9 +81,9 @@ All four SDKs updated with Teams, Dispatch, Missions and Billing methods:
 - All secrets in GCP Secret Manager
 - Helmet, CORS, rate limiting per tenant
 
-### SDKs — v1.0
+### SDKs - v1.0
 
 - `@wede/sdk` (TypeScript/JavaScript)
 - `wede-sdk` (Python)
-- `@wede/react-native-sdk` (React Native) — with offline queue via AsyncStorage
-- `WedeSDK` (Swift) — iOS 15+ / macOS 12+
+- `@wede/react-native-sdk` (React Native) - with offline queue via AsyncStorage
+- `WedeSDK` (Swift) - iOS 15+ / macOS 12+

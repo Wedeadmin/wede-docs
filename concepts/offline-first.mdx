@@ -7,19 +7,19 @@ description: How Wede ensures operational continuity without internet
 
 Most platforms assume internet connectivity. They are built for the best case. When connectivity fails, they fail too.
 
-Wede is built for the worst case. Every feature, every integration, every delivery guarantee is designed to work without internet — and to work better when internet is available.
+Wede is built for the worst case. Every feature, every integration, every delivery guarantee is designed to work without internet - and to work better when internet is available.
 
 This is what offline-first means: not a fallback mode, but the default architecture.
 
 ## Delivery Channels
 
-Wede maintains multiple delivery channels for every operational zone. When the primary channel degrades, the next channel activates automatically — transparently, without any changes to your integration.
+Wede maintains multiple delivery channels for every operational zone. When the primary channel degrades, the next channel activates automatically - transparently, without any changes to your integration.
 
 | Channel | Description | Best For |
 |---------|-------------|----------|
-| **REST Full** | Standard HTTPS — primary channel | Normal operations |
+| **REST Full** | Standard HTTPS - primary channel | Normal operations |
 | **REST Compressed** | Optimised low-bandwidth HTTPS | Degraded internet |
-| **SMS** | Cellular SMS delivery | When internet is unavailable |
+| **Structured Protocols** | Compact structured transmission | When internet is unavailable |
 | **Voice** | Voice call delivery | Critical alerts, no data |
 | **LoRa** | Long-range IoT radio | Remote areas, IoT devices |
 | **Satellite** | Global satellite coverage | Extreme environments, no cellular |
@@ -34,15 +34,15 @@ Each zone has an independent connectivity state, monitored in real-time:
 | State | Meaning | Channels Active |
 |-------|---------|-----------------|
 | **online** | Full connectivity | REST Full, REST Compressed |
-| **degraded** | Reduced connectivity | REST Compressed, SMS |
-| **sms_only** | Internet unavailable | SMS, Voice |
+| **degraded** | Reduced connectivity | REST Compressed, Structured Protocols |
+| **sms_only** | Internet unavailable | Structured Protocols, Voice |
 | **offline** | All external channels unavailable | LoRa, Satellite, Edge |
 
 Zone states are visible in real-time in your [dashboard](https://app.wede.pt/dashboard/zones) and via the API.
 
 ## Idempotency
 
-Every event sent to Wede requires an `idempotency_key`. This guarantees that even if the same event is sent multiple times — due to network retries or reconnection — it is processed exactly once.
+Every event sent to Wede requires an `idempotency_key`. This guarantees that even if the same event is sent multiple times - due to network retries or reconnection - it is processed exactly once.
 
 ```json
 {
@@ -53,13 +53,13 @@ Every event sent to Wede requires an `idempotency_key`. This guarantees that eve
 }
 ```
 
-Choose idempotency keys that are unique per logical event — not per API call.
+Choose idempotency keys that are unique per logical event - not per API call.
 
 ## Synchronisation
 
 When connectivity is restored after an offline period, events queued during the outage are synchronised automatically. Order is preserved. Conflicts are resolved without data loss.
 
-Your system receives webhook notifications as each queued event is delivered — giving you full visibility of what happened during the outage.
+Your system receives webhook notifications as each queued event is delivered - giving you full visibility of what happened during the outage.
 
 ## Security
 
@@ -69,7 +69,7 @@ All communication is encrypted in transit over HTTPS. Events are authenticated u
 
 Wede is designed for regulated industries:
 
-- **Data residency** — configurable per zone and per country
-- **Audit trail** — every operation logged with user, timestamp and IP
-- **Role-based access** — granular permissions per user role
-- **GDPR** — data processed within EU infrastructure (GCP europe-west1)
+- **Data residency** - configurable per zone and per country
+- **Audit trail** - every operation logged with user, timestamp and IP
+- **Role-based access** - granular permissions per user role
+- **GDPR** - data processed within EU infrastructure (GCP europe-west1)

@@ -1,6 +1,6 @@
 ---
 title: API Reference
-description: Complete reference for the Wede REST API — offline-first event delivery
+description: Complete reference for the Wede REST API - offline-first event delivery
 ---
 
 ## Base URL
@@ -17,13 +17,13 @@ All endpoints are prefixed with `/v1/`. The API is hosted in Europe (GCP europe-
 
 All requests require authentication. Wede supports two methods:
 
-**API Key** — for server-to-server integrations:
+**API Key** - for server-to-server integrations:
 ```bash
 curl https://api.wede.pt/v1/events \
   -H "X-Wede-API-Key: wede_live_YOUR_KEY"
 ```
 
-**JWT Token** — for user sessions (obtained via `/v1/auth/login`):
+**JWT Token** - for user sessions (obtained via `/v1/auth/login`):
 ```bash
 curl https://api.wede.pt/v1/events \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
@@ -73,7 +73,7 @@ Rate limit headers are included in every response:
 
 ## Idempotency
 
-All write operations accept an `idempotency_key`. Use this to safely retry requests without creating duplicates — Wede guarantees exactly-once delivery per key.
+All write operations accept an `idempotency_key`. Use this to safely retry requests without creating duplicates - Wede guarantees exactly-once delivery per key.
 
 ## Offline Behaviour
 
@@ -82,7 +82,7 @@ When connectivity is unavailable, Wede automatically queues events and delivers 
 | Channel | Meaning |
 |---------|---------|
 | `rest_full` | Delivered via HTTPS |
-| `sms` | Delivered via SMS fallback |
+| `sms` | Delivered via structured fallback protocol |
 | `queued_offline` | Queued for delivery on reconnection |
 
-Your integration does not need to handle channel selection — Wede routes transparently.
+Your integration does not need to handle channel selection - Wede routes transparently.

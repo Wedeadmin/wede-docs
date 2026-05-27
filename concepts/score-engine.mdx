@@ -5,31 +5,31 @@ description: How wede ranks teams for dispatch using proximity, equipment and ca
 
 ## Overview
 
-The wede score engine ranks available teams for a given event. It runs identically on the API (online) and on the SDK (offline) — no server required, no external dependencies, pure TypeScript.
+The wede score engine ranks available teams for a given event. It runs identically on the API (online) and on the SDK (offline) - no server required, no external dependencies, pure TypeScript.
 
 Lower score is better. The top-ranked team is marked as `recommended`.
 
 ## Algorithm
 ### Components
 
-**travel_score** — Haversine great-circle distance between the team position and the event, normalised to a 30-minute ETA at 42 km/h urban average. Capped at 1.0.
+**travel_score** - Haversine great-circle distance between the team position and the event, normalised to a 30-minute ETA at 42 km/h urban average. Capped at 1.0.
 
-**capability_score** — Equipment match ratio. If the event requires specific equipment, this is the fraction of required items the team has in `operational` status. Lower is better — a perfect match scores 0.0.
+**capability_score** - Equipment match ratio. If the event requires specific equipment, this is the fraction of required items the team has in `operational` status. Lower is better - a perfect match scores 0.0.
 
-**member_score** — Member availability ratio. Fraction of members with `status: available`. Lower means more available members.
+**member_score** - Member availability ratio. Fraction of members with `status: available`. Lower means more available members.
 
-**load_penalty** — 0.5 if the team is currently `on_mission`, 0 otherwise.
+**load_penalty** - 0.5 if the team is currently `on_mission`, 0 otherwise.
 
-**geofence_penalty** — 0.2 if the event GPS is outside the team's zone boundary polygon, 0 otherwise. Teams outside their zone are penalised but not excluded — cross-zone escalation remains possible.
+**geofence_penalty** - 0.2 if the event GPS is outside the team's zone boundary polygon, 0 otherwise. Teams outside their zone are penalised but not excluded - cross-zone escalation remains possible.
 
 ## Position resolution
 
 The engine resolves the team position in order:
 
-1. **Fresh GPS** — member with `status: available`, `last_seen` within 10 minutes
-2. **Any GPS** — most recent GPS from any member
-3. **Zone center** — fallback to the team's zone `lat_center`, `lng_center`
-4. **Unknown** — no position data available — distance scored as 0
+1. **Fresh GPS** - member with `status: available`, `last_seen` within 10 minutes
+2. **Any GPS** - most recent GPS from any member
+3. **Zone center** - fallback to the team's zone `lat_center`, `lng_center`
+4. **Unknown** - no position data available - distance scored as 0
 
 ## Fallback channel
 
@@ -37,8 +37,8 @@ Based on ETA and event priority, the engine recommends a communication channel:
 
 | Condition | Channel |
 |-----------|---------|
-| P1_CRITICAL or CRITICAL, ETA > 5 min | SMS |
-| ETA > 15 min | SMS |
+| P1_CRITICAL or CRITICAL, ETA > 5 min | Structured Protocol |
+| ETA > 15 min | Structured Protocol |
 | All other cases | Internet |
 
 ## Offline operation

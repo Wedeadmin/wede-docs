@@ -1,11 +1,11 @@
 ---
-title: Delivery & Logistics — Driver Dispatch
+title: Delivery & Logistics - Driver Dispatch
 description: Complete integration example for last-mile delivery and ride-hailing with offline resilience
 ---
 
 ## Overview
 
-This example covers driver dispatch for delivery and ride-hailing operations. A service request arrives, the proximity engine finds the nearest available driver, dispatches them, and tracks the delivery to completion — all working offline when the driver loses connectivity.
+This example covers driver dispatch for delivery and ride-hailing operations. A service request arrives, the proximity engine finds the nearest available driver, dispatches them, and tracks the delivery to completion - all working offline when the driver loses connectivity.
 
 ---
 
@@ -57,7 +57,7 @@ await client.dispatch({
 
 ---
 
-## 3. Driver App — Offline-First (React Native)
+## 3. Driver App - Offline-First (React Native)
 
 ```typescript
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -137,14 +137,14 @@ app.post('/webhooks/wede', (req, res) => {
 
 ---
 
-## Offline Scenario — What Happens
+## Offline Scenario - What Happens
 
 Driver enters a tunnel or rural area with no connectivity:
 
-1. `updateMemberLocation` — queued locally in AsyncStorage
-2. `updateMissionStatus('COMPLETED')` — queued locally
-3. Connectivity restored — `flushQueue()` syncs all operations in order
+1. `updateMemberLocation` - queued locally in AsyncStorage
+2. `updateMissionStatus('COMPLETED')` - queued locally
+3. Connectivity restored - `flushQueue()` syncs all operations in order
 4. Your webhook receives the events with original timestamps
-5. Zero data loss, zero duplicates — idempotency key enforced
+5. Zero data loss, zero duplicates - idempotency key enforced
 
 No changes to your integration required.

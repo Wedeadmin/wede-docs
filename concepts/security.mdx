@@ -5,10 +5,10 @@ description: Technical security architecture, compliance alignment, and what Wed
 
 ## Architecture Overview
 
-Wede is designed for regulated industries where security is not a feature — it is a precondition. Every architectural decision is made with the assumption that the data being transported is sensitive, the operations are critical, and the audit trail is legally required.
+Wede is designed for regulated industries where security is not a feature - it is a precondition. Every architectural decision is made with the assumption that the data being transported is sensitive, the operations are critical, and the audit trail is legally required.
 
 <Info>
-  Wede transports payloads but never inspects them. Your data is encrypted by you before it reaches Wede. We handle delivery, integrity, and reconciliation — not content.
+  Wede transports payloads but never inspects them. Your data is encrypted by you before it reaches Wede. We handle delivery, integrity, and reconciliation - not content.
 </Info>
 
 ---
@@ -17,9 +17,9 @@ Wede is designed for regulated industries where security is not a feature — it
 
 ### API Keys
 
-Every tenant receives two API keys at onboarding — one for production (`wede_live_`), one for sandbox (`wede_test_`). Keys are:
+Every tenant receives two API keys at onboarding - one for production (`wede_live_`), one for sandbox (`wede_test_`). Keys are:
 
-- Stored as **bcrypt hashes** — never in plain text, not even internally
+- Stored as **bcrypt hashes** - never in plain text, not even internally
 - Validated on every request with constant-time comparison
 - Scopeable per integration or environment
 - Rotatable at any time via `POST /v1/tenant/api-keys/rotate` with a configurable grace period
@@ -38,25 +38,25 @@ The previous key remains valid for the configured grace period, allowing zero-do
 
 User sessions are issued as signed JWT tokens:
 
-- Signed with a secret stored in **GCP Secret Manager** — never in environment variables
+- Signed with a secret stored in **GCP Secret Manager** - never in environment variables
 - Expire after **8 hours**
 - Include a `token_version` claim tied to the user record
-- Immediately invalidated when a user is suspended or their session is revoked — no waiting for expiry
+- Immediately invalidated when a user is suspended or their session is revoked - no waiting for expiry
 
 ### Brute Force Protection
 
 Login attempts are rate-limited at two levels:
 
-- **Global rate limit** — per tenant, configurable per plan
-- **Per-account lockout** — after 5 consecutive failed attempts, the account is locked for 15 minutes. The user can unlock immediately via password reset without admin intervention.
+- **Global rate limit** - per tenant, configurable per plan
+- **Per-account lockout** - after 5 consecutive failed attempts, the account is locked for 15 minutes. The user can unlock immediately via password reset without admin intervention.
 
 ---
 
 ## Transport Security
 
-All communication with the Wede API is encrypted over **TLS 1.2+**. Unencrypted HTTP is rejected at the infrastructure level — not redirected.
+All communication with the Wede API is encrypted over **TLS 1.2+**. Unencrypted HTTP is rejected at the infrastructure level - not redirected.
 
-This applies to all delivery channels: REST, SMS (structured data), voice, LoRa, and satellite. Each channel has independent transport-level security appropriate to its protocol.
+This applies to all delivery channels: REST, structured protocols, voice, LoRa, and satellite. Each channel has independent transport-level security appropriate to its protocol.
 
 ---
 
@@ -66,22 +66,22 @@ Wede implements a **7-level cascading RBAC** model. No level can grant permissio
 
 | Level | Role | Scope |
 |-------|------|-------|
-| 1 | `wede_global_admin` | Full platform — infrastructure, billing, all tenants |
-| 2 | `wede_tech_ops` | Technical operations — no billing, no tenant config |
-| 3 | `country_admin` | Regional management — assigned countries only |
-| 4 | `company_admin` | Full tenant — teams, users, billing view |
-| 5 | `company_tech` | Technical — SDK, API keys, integrations |
-| 6 | `operational_supervisor` | Monitoring — dispatch, incidents, zones |
-| 7 | `field_operator` | Field — mission receipt and feedback only |
+| 1 | `wede_global_admin` | Full platform - infrastructure, billing, all tenants |
+| 2 | `wede_tech_ops` | Technical operations - no billing, no tenant config |
+| 3 | `country_admin` | Regional management - assigned countries only |
+| 4 | `company_admin` | Full tenant - teams, users, billing view |
+| 5 | `company_tech` | Technical - SDK, API keys, integrations |
+| 6 | `operational_supervisor` | Monitoring - dispatch, incidents, zones |
+| 7 | `field_operator` | Field - mission receipt and feedback only |
 
-Every API route enforces the minimum required permission. Attempting to access a route without the required permission returns `403 Forbidden` — the route does not exist from the caller's perspective.
+Every API route enforces the minimum required permission. Attempting to access a route without the required permission returns `403 Forbidden` - the route does not exist from the caller's perspective.
 
 ### Cascade Principle
 
 - Wede Global Admin defines the full universe of available features
 - Each level receives a subset of the level above
-- Delegation is explicit — not included by default
-- Privilege escalation is structurally impossible — no level can grant what it does not hold
+- Delegation is explicit - not included by default
+- Privilege escalation is structurally impossible - no level can grant what it does not hold
 
 ---
 
@@ -99,15 +99,15 @@ Every mutating operation in Wede is written to an **immutable audit log**:
 
 Covered operations include: authentication, events, sync, webhooks, teams, dispatch, missions, parsers, users, zones, and tenant configuration changes.
 
-Audit logs are available via the API (`GET /v1/audit`) and the dashboard. They cannot be modified or deleted — not even by Wede Global Admin.
+Audit logs are available via the API (`GET /v1/audit`) and the dashboard. They cannot be modified or deleted - not even by Wede Global Admin.
 
 ---
 
 ## Data Isolation
 
-Each tenant's data is logically isolated at the database level. Every query is scoped to `tenant_id`. Cross-tenant data access is structurally impossible via the API — not just access-controlled.
+Each tenant's data is logically isolated at the database level. Every query is scoped to `tenant_id`. Cross-tenant data access is structurally impossible via the API - not just access-controlled.
 
-`country_admin` roles operate across tenants within their assigned countries via explicit `country_admin_assignments` — there is no implicit access.
+`country_admin` roles operate across tenants within their assigned countries via explicit `country_admin_assignments` - there is no implicit access.
 
 ---
 
@@ -117,7 +117,7 @@ Each tenant's data is logically isolated at the database level. Every query is s
   Wede never reads, stores, or inspects the content of your event payloads. Encrypt before sending.
 </Warning>
 
-The `payload` field in every event is treated as an opaque binary blob. Wede transports it, preserves its integrity via SHA-256 hash, and delivers it — without ever accessing its content. This is by design and enforced at the architectural level.
+The `payload` field in every event is treated as an opaque binary blob. Wede transports it, preserves its integrity via SHA-256 hash, and delivers it - without ever accessing its content. This is by design and enforced at the architectural level.
 
 This means Wede is compatible with end-to-end encrypted workflows in healthcare, banking, and government without any changes.
 
@@ -126,10 +126,10 @@ This means Wede is compatible with end-to-end encrypted workflows in healthcare,
 ## Infrastructure
 
 - **Cloud provider**: GCP europe-west1 (Belgium)
-- **Database**: PostgreSQL 16 — Cloud SQL with automated backups
-- **Secrets**: GCP Secret Manager — all credentials, keys, and tokens
-- **Container runtime**: Cloud Run — auto-scaling, no persistent state
-- **CDN and DNS**: Cloudflare — DDoS protection, global PoPs
+- **Database**: PostgreSQL 16 - Cloud SQL with automated backups
+- **Secrets**: GCP Secret Manager - all credentials, keys, and tokens
+- **Container runtime**: Cloud Run - auto-scaling, no persistent state
+- **CDN and DNS**: Cloudflare - DDoS protection, global PoPs
 
 All infrastructure is within the EU. Data does not leave the EU unless explicitly configured for a multi-region deployment.
 
@@ -137,7 +137,7 @@ All infrastructure is within the EU. Data does not leave the EU unless explicitl
 
 ## Compliance Alignment by Vertical
 
-### Banking and Fintech — DORA
+### Banking and Fintech - DORA
 
 The EU Digital Operational Resilience Act (DORA) applies to financial entities and their ICT providers. Wede is designed as a DORA-aligned ICT layer:
 
@@ -145,7 +145,7 @@ The EU Digital Operational Resilience Act (DORA) applies to financial entities a
 |-----------------|---------------------|
 | ICT risk management | Multi-channel fallback, zone connectivity monitoring, real-time alerts |
 | Incident reporting | Immutable audit log, webhook notifications, structured incident lifecycle |
-| Operational continuity | Offline-first SDK — operations continue without internet |
+| Operational continuity | Offline-first SDK - operations continue without internet |
 | Third-party ICT oversight | Full API documentation, contractual SLAs, audit trail exportable to PDF/CSV |
 | Resilience testing | Sandbox environment per tenant, connectivity simulation endpoints |
 | Data integrity | SHA-256 hash per event, idempotency enforcement, reconciliation engine |
@@ -156,7 +156,7 @@ The EU Digital Operational Resilience Act (DORA) applies to financial entities a
   Wede operates as an ICT third-party provider under DORA Article 28. Full contractual documentation is available on request.
 </Note>
 
-### Healthcare — HIPAA and MDR
+### Healthcare - HIPAA and MDR
 
 For healthcare deployments, Wede aligns with HIPAA Technical Safeguards (45 CFR § 164.312):
 
@@ -168,13 +168,13 @@ For healthcare deployments, Wede aligns with HIPAA Technical Safeguards (45 CFR 
 | Transmission Security (§ 164.312(e)) | TLS 1.2+ enforced, no unencrypted fallback paths |
 | Authentication | JWT with token versioning, bcrypt passwords, brute force lockout |
 
-Wede does not store ePHI — payloads are opaque and pass through encrypted. This significantly reduces the compliance surface for healthcare integrators.
+Wede does not store ePHI - payloads are opaque and pass through encrypted. This significantly reduces the compliance surface for healthcare integrators.
 
 <Note>
   The 2025 proposed HIPAA Security Rule updates (expected final May 2026) make encryption at rest and in transit, MFA, and audit controls mandatory without exception. Wede meets all proposed requirements.
 </Note>
 
-### Government and Critical Infrastructure — NIS2
+### Government and Critical Infrastructure - NIS2
 
 For government and infrastructure deployments:
 
@@ -183,10 +183,10 @@ For government and infrastructure deployments:
 | Risk management | Multi-layer resilience, zone-level connectivity monitoring |
 | Incident handling | Structured lifecycle, webhook notifications, audit export |
 | Business continuity | Offline-first SDK, multi-channel fallback, data sync on reconnection |
-| Supply chain security | Private core repository, public SDK only — no proprietary algorithm exposure |
+| Supply chain security | Private core repository, public SDK only - no proprietary algorithm exposure |
 | Access control | Cascading RBAC, session revocation, API key rotation |
 | Cryptography | TLS 1.2+, bcrypt, SHA-256, secrets in GCP Secret Manager |
-| Data residency | Configurable per country and per zone — EU by default |
+| Data residency | Configurable per country and per zone - EU by default |
 
 ---
 
@@ -194,10 +194,10 @@ For government and infrastructure deployments:
 
 To be explicit about scope:
 
-- Wede does **not** store payload content — payloads are opaque
-- Wede does **not** provide MFA for end users — this is your responsibility at the application layer
-- Wede does **not** perform penetration testing on your integration — you are responsible for your own security posture
-- Wede does **not** guarantee anonymisation — if your payload contains PII, you are responsible for encrypting it before sending
+- Wede does **not** store payload content - payloads are opaque
+- Wede does **not** provide MFA for end users - this is your responsibility at the application layer
+- Wede does **not** perform penetration testing on your integration - you are responsible for your own security posture
+- Wede does **not** guarantee anonymisation - if your payload contains PII, you are responsible for encrypting it before sending
 
 ---
 

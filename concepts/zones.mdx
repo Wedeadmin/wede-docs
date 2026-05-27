@@ -7,7 +7,7 @@ description: How Wede organises operational coverage by geographic zone
 
 A zone is a geographic operational area managed independently by Wede. Each zone has its own connectivity state, channel configuration, and incident tracking.
 
-Zones allow you to model the real-world structure of your operations — a hospital, a city district, a country region, or an entire country — and monitor each area independently.
+Zones allow you to model the real-world structure of your operations - a hospital, a city district, a country region, or an entire country - and monitor each area independently.
 
 ## Zone Connectivity States
 
@@ -15,24 +15,24 @@ Each zone operates in one of four connectivity states:
 
 | State | Meaning |
 |-------|---------|
-| **online** | Full internet connectivity — primary channel active |
-| **degraded** | Reduced connectivity — optimised routing active |
-| **sms_only** | Internet unavailable — SMS and voice channels active |
-| **offline** | All external channels unavailable — LoRa, satellite and edge active |
+| **online** | Full internet connectivity - primary channel active |
+| **degraded** | Reduced connectivity - optimised routing active |
+| **sms_only** | Internet unavailable - Structured protocols and voice channels active |
+| **offline** | All external channels unavailable - LoRa, satellite and edge active |
 
-State transitions are detected automatically by Wede based on real-time monitoring. Your integration does not need to handle state changes — Wede routes transparently.
+State transitions are detected automatically by Wede based on real-time monitoring. Your integration does not need to handle state changes - Wede routes transparently.
 
 ## Zone Configuration
 
 Each zone has:
 
-- **Zone code** — unique identifier (e.g. `zone_hospital_evora`)
-- **Name** — human-readable label
-- **Country and region** — geographic scope
-- **GPS coordinates** — centre point for map display and proximity calculations
-- **Active verticals** — which industry modules are active in this zone
-- **Connectivity state** — current operational status
-- **Incident flag** — whether an active incident is in progress
+- **Zone code** - unique identifier (e.g. `zone_hospital_evora`)
+- **Name** - human-readable label
+- **Country and region** - geographic scope
+- **GPS coordinates** - centre point for map display and proximity calculations
+- **Active verticals** - which industry modules are active in this zone
+- **Connectivity state** - current operational status
+- **Incident flag** - whether an active incident is in progress
 
 ## Creating a Zone
 
@@ -81,23 +81,23 @@ Response:
 ## Zone Examples by Vertical
 
 **Healthcare:**
-- `zone_hospital_lisbon` — Hospital Santa Maria, Lisboa
-- `zone_emergency_porto` — Emergency Centre, Porto
-- `zone_rural_kisumu` — Rural District Hospital, Kisumu
+- `zone_hospital_lisbon` - Hospital Santa Maria, Lisboa
+- `zone_emergency_porto` - Emergency Centre, Porto
+- `zone_rural_kisumu` - Rural District Hospital, Kisumu
 
 **Banking:**
-- `zone_atm_network_lagos` — ATM Network, Lagos
-- `zone_branch_dubai` — Branch Operations, Dubai
-- `zone_field_agents_nairobi` — Field Agents, Nairobi
+- `zone_atm_network_lagos` - ATM Network, Lagos
+- `zone_branch_dubai` - Branch Operations, Dubai
+- `zone_field_agents_nairobi` - Field Agents, Nairobi
 
 **Logistics:**
-- `zone_warehouse_maputo` — Warehouse, Maputo
-- `zone_lastmile_singapore` — Last-Mile, Singapore
-- `zone_port_luanda` — Port Operations, Luanda
+- `zone_warehouse_maputo` - Warehouse, Maputo
+- `zone_lastmile_singapore` - Last-Mile, Singapore
+- `zone_port_luanda` - Port Operations, Luanda
 
 **Government:**
-- `zone_border_control_pt` — Border Control, Portugal
-- `zone_utility_grid_ao` — Utility Grid, Angola
+- `zone_border_control_pt` - Border Control, Portugal
+- `zone_utility_grid_ao` - Utility Grid, Angola
 
 ## Incidents
 

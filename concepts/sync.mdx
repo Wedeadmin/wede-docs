@@ -15,11 +15,11 @@ The sync mechanism ensures that no event is lost, regardless of how long the dev
 2. When connectivity is restored, the SDK submits a sync batch via `POST /v1/sync/batch`
 3. Wede processes each event, checks idempotency keys and deduplicates
 4. The platform confirms which events were accepted and which were rejected
-5. Rejected events are returned with a reason — the integrator decides whether to retry
+5. Rejected events are returned with a reason - the integrator decides whether to retry
 
 ## Idempotency
 
-Every event must have a unique `idempotency_key`. This key is used to prevent duplicate processing if the same batch is submitted more than once — for example, if the network drops mid-submission.
+Every event must have a unique `idempotency_key`. This key is used to prevent duplicate processing if the same batch is submitted more than once - for example, if the network drops mid-submission.
 
 The key should be generated on the device before the event is captured, not at submission time.
 
@@ -59,8 +59,8 @@ const status = await client.getSyncStatus(batchId)
 - Keep batches under 500 events for optimal performance
 - Always check the `rejected` count and handle rejections
 - Use `device_id` consistently to correlate events from the same device
-- Submit batches as soon as connectivity is restored — do not accumulate indefinitely
+- Submit batches as soon as connectivity is restored - do not accumulate indefinitely
 
 ## Channels
 
-Sync batches are always submitted via REST. Individual events captured offline may have been transmitted via SMS or other channels — sync consolidates them into a single REST call when connectivity allows.
+Sync batches are always submitted via REST. Individual events captured offline may have been transmitted via structured protocols or other channels - sync consolidates them into a single REST call when connectivity allows.
