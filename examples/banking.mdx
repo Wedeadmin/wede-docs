@@ -1,0 +1,147 @@
+---
+title: Banking & Fintech — Field Agent Dispatch
+description: Complete integration example for field banking agent coordination with DORA compliance
+---
+
+## Overview
+
+This example covers field banking agent dispatch for mobile money and agent banking operations. An incident is reported (ATM fault, fraud alert, field agent request), the system scores available agents by proximity and capability, dispatches the best match, and tracks the mission to completion.
+
+Works fully offline — critical for agent banking in rural areas with degraded connectivity.
+
+---
+
+## 1. Submit a Field Incident
+
+```typescript
+import { WedeClient } from '@wede/sdk'
+
+const client = new WedeClient({ apiKey: 'wede_live_YOUR_KEY' })
+
+const event = await client.sendEvent({
+  type: 'ATM_FAULT',
+  priority: 'high',
+  vertical: 'banking',
+  idempotency_key: `atm-fault-${terminalId}-${Date.now()}`,
+  zone_id: 'zone_lagos_island',
+  payload: {
+    terminal_id: 'ATM-NG-042',
+    fault_type: 'cash_jam',
+    location: { lat: 6.4550, lng: 3.3841 },
+    queue_length: 23,
+  },
+})
+```
+
+---
+
+## 2. Score and Dispatch Field Agent
+
+```typescript
+// Score agents by proximity and capability
+const scored = await client.scoreTeams({
+  lat: 6.4550,
+  lng: 3.3841,
+  vertical: 'banking',
+  priority: 'high',
+  required_equipment: ['cash_cassette', 'engineer_kit'],
+})
+
+const agent = scored.data.scored.find(t => t.recommended)
+
+// Dispatch
+await client.dispatch({
+  event_id: event.event_id,
+  team_id: agent.team_id,
+  event_lat: 6.4550,
+  event_lng: 3.3841,
+  notes: `ATM-NG-042 cash jam — ${agent.eta_min} min ETA`,
+})
+```
+
+---
+
+## 3. Offline Agent App (React Native)
+
+Field agents in rural areas operate with degraded connectivity. The SDK queues all operations locally and syncs automatically.
+
+```typescript
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { WedeClient } from '@wede/react-native-sdk'
+
+const agentClient = new WedeClient({
+  apiKey: 'wede_live_AGENT_KEY',
+  storage: AsyncStorage,
+})
+
+// Accept mission — works offline
+const result = await agentClient.updateMissionStatus(missionId, 'ACK')
+if (result.queued) {
+  console.log('Offline — queued for sync')
+}
+
+// En route — GPS update sent even without connectivity
+await agentClient.updateMemberLocation(teamId, memberId, 6.4612, 3.3905)
+await agentClient.updateMissionStatus(missionId, 'ON_ROUTE')
+
+// On site
+await agentClient.updateMissionStatus(missionId, 'ON_SITE')
+
+// Complete with structured feedback
+await agentClient.updateMissionStatus(missionId, 'COMPLETED', {
+  resolution: 'cash_cassette_replaced',
+  atm_operational: true,
+  cash_loaded_ngn: 5000000,
+  duration_min: 34,
+})
+```
+
+---
+
+## 4. Fraud Alert Delivery
+
+For time-critical fraud alerts where internet may be unavailable:
+
+```typescript
+await client.sendEvent({
+  type: 'FRAUD_ALERT',
+  priority: 'critical',
+  vertical: 'banking',
+  idempotency_key: `fraud-${accountRef}-${Date.now()}`,
+  payload: {
+    account_ref: '****4521',
+    terminal_id: 'POS-AE-087',
+    amount: 150000,
+    currency: 'NGN',
+    location: { lat: 6.4550, lng: 3.3841 },
+  },
+})
+```
+
+If internet is unavailable, Wede automatically routes via SMS or voice — the payload is fragmented, transmitted, and reassembled at the destination without any changes to your code.
+
+---
+
+## 5. Annual Usage and Billing
+
+```typescript
+const billing = await client.getBilling()
+
+console.log(`Plan: ${billing.data.current_plan.display_name}`)
+console.log(`Events used: ${billing.data.usage.events_this_year} / ${billing.data.current_plan.max_events_per_year}`)
+console.log(`Dispatches: ${billing.data.usage.dispatches_total}`)
+```
+
+---
+
+## DORA Alignment
+
+| DORA Requirement | This Integration |
+|-----------------|-----------------|
+| ICT risk management | Multi-channel fallback — SMS, voice, LoRa automatic |
+| Operational continuity | Offline SDK — operations continue without internet |
+| Incident reporting | Immutable audit log, webhook notifications per event |
+| Data integrity | SHA-256 per event, idempotency key, reconciliation |
+| Access controls | RBAC per role, API key rotation, JWT revocation |
+| Third-party oversight | Full audit trail exportable, contractual SLAs available |
+| Resilience testing | Sandbox environment with connectivity simulation |

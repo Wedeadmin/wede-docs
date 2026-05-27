@@ -2,22 +2,22 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Wede Resilience API",
-    "version": "1.0.0",
-    "description": "API p\u00fablica da plataforma Wede \u2014 camada de resili\u00eancia offline-first.\n\nEsta API \u00e9 o contrato t\u00e9cnico entre a Wede e os integradores (tenants).\nO integrador nunca comunica directamente com o canal de transporte subjacente\n(SMS, voz, rede degradada). A Wede intercepta, normaliza e encaminha cada\nopera\u00e7\u00e3o pelo canal mais adequado de forma determin\u00edstica e transparente.\n\n**Vers\u00e3o:** v1.0.0 \u2014 Phase 1 (Core SaaS)\n**Patente:** INPI PT 120488\n**Contacto:** api@wede.pt\n\n## N\u00edveis de fallback suportados\n| N\u00edvel | Condi\u00e7\u00e3o | Protocolo |\n|-------|----------|-----------|\n| 1 | 4G/5G | REST/JSON completo |\n| 2 | 3G degradado | REST/JSON comprimido (gzip) |\n| 3 | 2G/EDGE | SMS estruturado propriet\u00e1rio |\n| 4 | GSM apenas | SMS emerg\u00eancia + voz |\n\n## Autentica\u00e7\u00e3o\nTodas as chamadas requerem `X-Wede-API-Key` no header.\nEm modo offline (SDK), o token \u00e9 validado localmente via chave p\u00fablica pr\u00e9-distribu\u00edda.\n",
+    "version": "1.1.0",
+    "description": "Wede Resilience API — offline-first operational continuity platform.\n\nWede intercepts, normalises, and routes every operation through the most appropriate channel transparently. Your integration stays the same regardless of whether delivery happens over HTTPS, SMS, LoRa, or satellite.\n\n**Version:** v1.1.0\n**Patent:** INPI PT 120488\n**Contact:** api@wede.pt\n\n## Fallback levels\n| Level | Condition | Protocol |\n|-------|-----------|----------|\n| 1 | 4G/5G | REST/JSON full |\n| 2 | 3G degraded | REST/JSON compressed (gzip) |\n| 3 | 2G/EDGE | Proprietary structured SMS |\n| 4 | GSM only | Emergency SMS + voice |\n\n## Authentication\nAll requests require `X-Wede-API-Key` header or `Authorization: Bearer <jwt>`.\n",
     "contact": {
       "name": "Wede API Support",
       "email": "api@wede.pt",
       "url": "https://docs.wede.pt"
     },
     "license": {
-      "name": "Propriet\u00e1rio \u2014 Wede Technology",
+      "name": "Proprietário — Wede Technology",
       "url": "https://wede.pt/legal"
     }
   },
   "servers": [
     {
       "url": "https://api.wede.pt/v1",
-      "description": "Produ\u00e7\u00e3o"
+      "description": "Produção"
     },
     {
       "url": "https://sandbox.api.wede.pt/v1",
@@ -32,15 +32,15 @@
   "tags": [
     {
       "name": "Auth",
-      "description": "Autentica\u00e7\u00e3o e gest\u00e3o de credenciais do tenant"
+      "description": "Autenticação e gestão de credenciais do tenant"
     },
     {
       "name": "Events",
-      "description": "Submiss\u00e3o e consulta de eventos (opera\u00e7\u00f5es normalizadas)"
+      "description": "Submissão e consulta de eventos (operações normalizadas)"
     },
     {
       "name": "Sync",
-      "description": "Sincroniza\u00e7\u00e3o de eventos gerados offline"
+      "description": "Sincronização de eventos gerados offline"
     },
     {
       "name": "Connectivity",
@@ -48,15 +48,31 @@
     },
     {
       "name": "Webhooks",
-      "description": "Registo e gest\u00e3o de webhooks do tenant"
+      "description": "Registo e gestão de webhooks do tenant"
     },
     {
       "name": "Tenant",
-      "description": "Informa\u00e7\u00e3o e configura\u00e7\u00e3o do tenant autenticado"
+      "description": "Informação e configuração do tenant autenticado"
     },
     {
       "name": "Sandbox",
-      "description": "Simula\u00e7\u00e3o de estados de conectividade (apenas ambiente sandbox)"
+      "description": "Simulação de estados de conectividade (apenas ambiente sandbox)"
+    },
+    {
+      "name": "Teams",
+      "description": "Team management, members, equipment and GPS location"
+    },
+    {
+      "name": "Dispatch",
+      "description": "Proximity scoring engine and team dispatch"
+    },
+    {
+      "name": "Missions",
+      "description": "Mission lifecycle — creation, status updates and feedback"
+    },
+    {
+      "name": "Billing",
+      "description": "Tenant billing, plan limits and annual usage"
     }
   ],
   "paths": {
@@ -65,8 +81,8 @@
         "tags": [
           "Auth"
         ],
-        "summary": "Obter token de sess\u00e3o",
-        "description": "Troca a API Key por um JWT de sess\u00e3o com TTL configur\u00e1vel.\nO JWT \u00e9 usado para autenticar chamadas subsequentes.\nEm modo offline, o SDK usa a chave p\u00fablica do tenant para valida\u00e7\u00e3o local.\n",
+        "summary": "Obter token de sessão",
+        "description": "Troca a API Key por um JWT de sessão com TTL configurável.\nO JWT é usado para autenticar chamadas subsequentes.\nEm modo offline, o SDK usa a chave pública do tenant para validação local.\n",
         "operationId": "auth_token",
         "security": [],
         "requestBody": {
@@ -109,7 +125,7 @@
           "Auth"
         ],
         "summary": "Rodar API Key",
-        "description": "Gera uma nova API Key para o tenant e invalida a anterior ap\u00f3s per\u00edodo de gra\u00e7a\nconfigur\u00e1vel (padr\u00e3o: 24h). Use para rota\u00e7\u00e3o peri\u00f3dica de credenciais.\n",
+        "description": "Gera uma nova API Key para o tenant e invalida a anterior após período de graça\nconfigurável (padrão: 24h). Use para rotação periódica de credenciais.\n",
         "operationId": "auth_rotate",
         "responses": {
           "200": {
@@ -134,7 +150,7 @@
           "Events"
         ],
         "summary": "Submeter evento",
-        "description": "Ponto central de entrada para qualquer opera\u00e7\u00e3o normalizada Wede.\n\nO payload \u00e9 independente do canal de transporte \u2014 a Wede decide\nautomaticamente como encaminhar com base no estado de conectividade\nactual da zona do tenant.\n\n**Tipos de evento suportados em Phase 1:**\n- `EMERGENCY` \u2014 emerg\u00eancia m\u00e9dica, incidente t\u00e9cnico, falha de rede\n- `PAYMENT` \u2014 pagamento offline, wallet fallback, microfinan\u00e7a\n- `BOOKING` \u2014 agendamento de consulta, servi\u00e7o, recurso\n- `STATUS_UPDATE` \u2014 actualiza\u00e7\u00e3o de estado de recurso ou operador\n- `IDENTITY_CONFIRM` \u2014 confirma\u00e7\u00e3o de identidade em rede degradada\n- `DISPATCH` \u2014 despacho de equipa ou recurso de campo\n\nCada evento recebe um `event_id` imut\u00e1vel que persiste atrav\u00e9s de\ntodos os canais e sincroniza\u00e7\u00f5es.\n",
+        "description": "Ponto central de entrada para qualquer operação normalizada Wede.\n\nO payload é independente do canal de transporte — a Wede decide\nautomaticamente como encaminhar com base no estado de conectividade\nactual da zona do tenant.\n\n**Tipos de evento suportados em Phase 1:**\n- `EMERGENCY` — emergência médica, incidente técnico, falha de rede\n- `PAYMENT` — pagamento offline, wallet fallback, microfinança\n- `BOOKING` — agendamento de consulta, serviço, recurso\n- `STATUS_UPDATE` — actualização de estado de recurso ou operador\n- `IDENTITY_CONFIRM` — confirmação de identidade em rede degradada\n- `DISPATCH` — despacho de equipa ou recurso de campo\n\nCada evento recebe um `event_id` imutável que persiste através de\ntodos os canais e sincronizações.\n",
         "operationId": "events_submit",
         "requestBody": {
           "required": true,
@@ -145,7 +161,7 @@
               },
               "examples": {
                 "emergency_healthcare": {
-                  "summary": "Emerg\u00eancia m\u00e9dica",
+                  "summary": "Emergência médica",
                   "value": {
                     "type": "EMERGENCY",
                     "vertical": "healthcare",
@@ -198,7 +214,7 @@
         },
         "responses": {
           "202": {
-            "description": "Evento aceite. O estado de entrega \u00e9 ass\u00edncrono e comunicado via webhook\nou consult\u00e1vel em `GET /events/{event_id}`.\n",
+            "description": "Evento aceite. O estado de entrega é assíncrono e comunicado via webhook\nou consultável em `GET /events/{event_id}`.\n",
             "content": {
               "application/json": {
                 "schema": {
@@ -214,7 +230,7 @@
             "$ref": "#/components/responses/Unauthorized"
           },
           "409": {
-            "description": "Evento duplicado \u2014 idempotency_key j\u00e1 processado",
+            "description": "Evento duplicado — idempotency_key já processado",
             "content": {
               "application/json": {
                 "schema": {
@@ -236,7 +252,7 @@
           "Events"
         ],
         "summary": "Listar eventos do tenant",
-        "description": "Retorna eventos do tenant com filtragem por estado, tipo, vertical e zona.\nPagina\u00e7\u00e3o por cursor para suportar volumes elevados.\n",
+        "description": "Retorna eventos do tenant com filtragem por estado, tipo, vertical e zona.\nPaginação por cursor para suportar volumes elevados.\n",
         "operationId": "events_list",
         "parameters": [
           {
@@ -305,7 +321,7 @@
               "type": "string",
               "format": "date-time"
             },
-            "description": "ISO 8601 \u2014 in\u00edcio do intervalo temporal"
+            "description": "ISO 8601 — início do intervalo temporal"
           },
           {
             "name": "to",
@@ -339,7 +355,7 @@
           "Events"
         ],
         "summary": "Consultar estado de um evento",
-        "description": "Retorna o estado actual e hist\u00f3rico de ciclo de vida de um evento espec\u00edfico.\nInclui o canal efectivamente usado para entrega e todas as tentativas de fallback.\n",
+        "description": "Retorna o estado actual e histórico de ciclo de vida de um evento específico.\nInclui o canal efectivamente usado para entrega e todas as tentativas de fallback.\n",
         "operationId": "events_get",
         "parameters": [
           {
@@ -378,7 +394,7 @@
           "Sync"
         ],
         "summary": "Sincronizar lote de eventos gerados offline",
-        "description": "Endpoint de reconcilia\u00e7\u00e3o para o SDK ap\u00f3s retorno de conectividade.\n\nO SDK submete todos os eventos gerados localmente durante o per\u00edodo offline.\nA Wede executa:\n1. Valida\u00e7\u00e3o de integridade (hash + assinatura por evento)\n2. Deduplica\u00e7\u00e3o por `idempotency_key`\n3. Resolu\u00e7\u00e3o de conflitos por timestamp e regras do tenant\n4. Actualiza\u00e7\u00e3o do estado de cada evento no sistema central\n\nO lote \u00e9 processado atomicamente por grupo de `idempotency_key`.\nEventos inv\u00e1lidos s\u00e3o rejeitados individualmente sem afectar o lote.\n",
+        "description": "Endpoint de reconciliação para o SDK após retorno de conectividade.\n\nO SDK submete todos os eventos gerados localmente durante o período offline.\nA Wede executa:\n1. Validação de integridade (hash + assinatura por evento)\n2. Deduplicação por `idempotency_key`\n3. Resolução de conflitos por timestamp e regras do tenant\n4. Actualização do estado de cada evento no sistema central\n\nO lote é processado atomicamente por grupo de `idempotency_key`.\nEventos inválidos são rejeitados individualmente sem afectar o lote.\n",
         "operationId": "sync_batch",
         "requestBody": {
           "required": true,
@@ -392,7 +408,7 @@
         },
         "responses": {
           "200": {
-            "description": "Resultado da sincroniza\u00e7\u00e3o por evento",
+            "description": "Resultado da sincronização por evento",
             "content": {
               "application/json": {
                 "schema": {
@@ -408,7 +424,7 @@
             "$ref": "#/components/responses/Unauthorized"
           },
           "413": {
-            "description": "Lote excede limite (m\u00e1ximo 500 eventos por chamada)",
+            "description": "Lote excede limite (máximo 500 eventos por chamada)",
             "content": {
               "application/json": {
                 "schema": {
@@ -425,12 +441,12 @@
         "tags": [
           "Sync"
         ],
-        "summary": "Estado de sincroniza\u00e7\u00e3o do tenant",
-        "description": "Retorna m\u00e9tricas de sincroniza\u00e7\u00e3o: eventos pendentes, sincronizados,\nfalhados e em conflito. \u00datil para monitoriza\u00e7\u00e3o e alertas.\n",
+        "summary": "Estado de sincronização do tenant",
+        "description": "Retorna métricas de sincronização: eventos pendentes, sincronizados,\nfalhados e em conflito. Útil para monitorização e alertas.\n",
         "operationId": "sync_status",
         "responses": {
           "200": {
-            "description": "Estado de sincroniza\u00e7\u00e3o",
+            "description": "Estado de sincronização",
             "content": {
               "application/json": {
                 "schema": {
@@ -451,7 +467,7 @@
           "Connectivity"
         ],
         "summary": "Estado de conectividade por zona",
-        "description": "Retorna o estado actual de conectividade para as zonas do tenant.\n\nEstados poss\u00edveis: `online` | `degraded` | `sms_only` | `voice_only` | `offline`\n\nO SDK consulta este endpoint periodicamente (quando online) para\nactualizar as pol\u00edticas de fallback locais.\n",
+        "description": "Retorna o estado actual de conectividade para as zonas do tenant.\n\nEstados possíveis: `online` | `degraded` | `sms_only` | `voice_only` | `offline`\n\nO SDK consulta este endpoint periodicamente (quando online) para\nactualizar as políticas de fallback locais.\n",
         "operationId": "connectivity_status",
         "parameters": [
           {
@@ -460,7 +476,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Filtrar por zona espec\u00edfica (omitir para todas as zonas do tenant)"
+            "description": "Filtrar por zona específica (omitir para todas as zonas do tenant)"
           }
         ],
         "responses": {
@@ -486,7 +502,7 @@
           "Connectivity"
         ],
         "summary": "Reportar estado de conectividade (SDK)",
-        "description": "O SDK reporta o estado de conectividade detectado localmente.\nEstes dados alimentam o mapa de cobertura global Wede e as pol\u00edticas\nde fallback adaptativas por zona.\n",
+        "description": "O SDK reporta o estado de conectividade detectado localmente.\nEstes dados alimentam o mapa de cobertura global Wede e as políticas\nde fallback adaptativas por zona.\n",
         "operationId": "connectivity_report",
         "requestBody": {
           "required": true,
@@ -536,7 +552,7 @@
           "Webhooks"
         ],
         "summary": "Registar webhook",
-        "description": "Regista um endpoint para receber notifica\u00e7\u00f5es de eventos Wede.\n\n**Eventos de webhook dispon\u00edveis:**\n- `event.status_changed` \u2014 mudan\u00e7a de estado no ciclo de vida\n- `event.delivered` \u2014 confirma\u00e7\u00e3o de entrega pelo canal activo\n- `event.failed` \u2014 falha ap\u00f3s todas as tentativas de fallback\n- `sync.completed` \u2014 sincroniza\u00e7\u00e3o offline conclu\u00edda\n- `connectivity.degraded` \u2014 degrada\u00e7\u00e3o de conectividade numa zona\n- `connectivity.restored` \u2014 restauro de conectividade numa zona\n- `assignment.created` \u2014 novo despacho de equipa criado\n\nA Wede assina cada payload com `X-Wede-Signature` (HMAC-SHA256).\nO integrador deve validar esta assinatura antes de processar.\n",
+        "description": "Regista um endpoint para receber notificações de eventos Wede.\n\n**Eventos de webhook disponíveis:**\n- `event.status_changed` — mudança de estado no ciclo de vida\n- `event.delivered` — confirmação de entrega pelo canal activo\n- `event.failed` — falha após todas as tentativas de fallback\n- `sync.completed` — sincronização offline concluída\n- `connectivity.degraded` — degradação de conectividade numa zona\n- `connectivity.restored` — restauro de conectividade numa zona\n- `assignment.created` — novo despacho de equipa criado\n\nA Wede assina cada payload com `X-Wede-Signature` (HMAC-SHA256).\nO integrador deve validar esta assinatura antes de processar.\n",
         "operationId": "webhooks_create",
         "requestBody": {
           "required": true,
@@ -654,8 +670,8 @@
         "tags": [
           "Tenant"
         ],
-        "summary": "Perfil e configura\u00e7\u00e3o do tenant autenticado",
-        "description": "Retorna a configura\u00e7\u00e3o completa do tenant: verticais activas,\nzonas, feature flags, limites de uso e estado da licen\u00e7a.\n",
+        "summary": "Perfil e configuração do tenant autenticado",
+        "description": "Retorna a configuração completa do tenant: verticais activas,\nzonas, feature flags, limites de uso e estado da licença.\n",
         "operationId": "tenant_me",
         "responses": {
           "200": {
@@ -679,8 +695,8 @@
         "tags": [
           "Tenant"
         ],
-        "summary": "M\u00e9tricas de uso do tenant",
-        "description": "Retorna consumo de eventos, mensagens, fallbacks e tokens SDK\npara o per\u00edodo especificado. Usado para controlo de billing e alertas.\n",
+        "summary": "Métricas de uso do tenant",
+        "description": "Retorna consumo de eventos, mensagens, fallbacks e tokens SDK\npara o período especificado. Usado para controlo de billing e alertas.\n",
         "operationId": "tenant_usage",
         "parameters": [
           {
@@ -718,7 +734,7 @@
         ],
         "responses": {
           "200": {
-            "description": "M\u00e9tricas de uso",
+            "description": "Métricas de uso",
             "content": {
               "application/json": {
                 "schema": {
@@ -800,7 +816,7 @@
             "$ref": "#/components/responses/ValidationError"
           },
           "409": {
-            "description": "Zona j\u00e1 existe para este tenant"
+            "description": "Zona já existe para este tenant"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -813,7 +829,7 @@
         "tags": [
           "Tenant"
         ],
-        "summary": "Obter zona por c\u00f3digo",
+        "summary": "Obter zona por código",
         "operationId": "tenant_zones_get",
         "parameters": [
           {
@@ -1183,7 +1199,7 @@
         },
         "responses": {
           "201": {
-            "description": "Account created \u2014 verification email sent",
+            "description": "Account created — verification email sent",
             "content": {
               "application/json": {
                 "schema": {
@@ -1785,7 +1801,7 @@
           "Sandbox"
         ],
         "summary": "Simular estado de conectividade (sandbox only)",
-        "description": "For\u00e7a um estado de conectividade espec\u00edfico para uma zona no ambiente sandbox.\nPermite ao integrador testar o comportamento da sua aplica\u00e7\u00e3o em cada\nn\u00edvel de fallback antes de ir a produ\u00e7\u00e3o.\n\n**Apenas dispon\u00edvel em** `sandbox.api.wede.pt`.\n",
+        "description": "Força um estado de conectividade específico para uma zona no ambiente sandbox.\nPermite ao integrador testar o comportamento da sua aplicação em cada\nnível de fallback antes de ir a produção.\n\n**Apenas disponível em** `sandbox.api.wede.pt`.\n",
         "operationId": "sandbox_simulate_connectivity",
         "requestBody": {
           "required": true,
@@ -1817,7 +1833,7 @@
         },
         "responses": {
           "200": {
-            "description": "Simula\u00e7\u00e3o activa",
+            "description": "Simulação activa",
             "content": {
               "application/json": {
                 "schema": {
@@ -1830,11 +1846,510 @@
             "$ref": "#/components/responses/BadRequest"
           },
           "403": {
-            "description": "Endpoint n\u00e3o dispon\u00edvel em produ\u00e7\u00e3o",
+            "description": "Endpoint não disponível em produção",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams": {
+      "get": {
+        "operationId": "teams_list",
+        "summary": "List teams",
+        "description": "Returns all teams for the authenticated tenant, including members and their GPS coordinates.",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Filter by tenant (admin only)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of teams",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Team"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/{teamId}": {
+      "get": {
+        "operationId": "teams_get",
+        "summary": "Get team",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Team"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/{teamId}/members/{memberId}/location": {
+      "patch": {
+        "operationId": "teams_member_location",
+        "summary": "Update member GPS location",
+        "description": "Called by the SDK at configurable intervals to update a field operator's real-time position.",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "lat",
+                  "lng"
+                ],
+                "properties": {
+                  "lat": {
+                    "type": "number",
+                    "example": 38.7169
+                  },
+                  "lng": {
+                    "type": "number",
+                    "example": -9.1395
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Location updated"
+          }
+        }
+      }
+    },
+    "/teams/dispatch/score": {
+      "post": {
+        "operationId": "dispatch_score",
+        "summary": "Score teams by proximity",
+        "description": "Runs the Wede proximity score engine. Returns all teams ranked by distance, equipment match, member availability and vertical capability. The recommended team is flagged.",
+        "tags": [
+          "Dispatch"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "lat",
+                  "lng"
+                ],
+                "properties": {
+                  "lat": {
+                    "type": "number",
+                    "example": 38.7169
+                  },
+                  "lng": {
+                    "type": "number",
+                    "example": -9.1395
+                  },
+                  "vertical": {
+                    "type": "string",
+                    "example": "healthcare"
+                  },
+                  "priority": {
+                    "type": "string",
+                    "enum": [
+                      "low",
+                      "normal",
+                      "high",
+                      "critical"
+                    ]
+                  },
+                  "required_equipment": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "defibrillator"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Scored teams",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "scored": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ScoredTeam"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/dispatch": {
+      "post": {
+        "operationId": "dispatch_assign",
+        "summary": "Dispatch a team",
+        "description": "Assigns a team to an event. Stores event coordinates for route mapping. Triggers `team.dispatched` webhook.",
+        "tags": [
+          "Dispatch"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "event_id",
+                  "team_id"
+                ],
+                "properties": {
+                  "event_id": {
+                    "type": "string"
+                  },
+                  "team_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "event_lat": {
+                    "type": "number",
+                    "example": 38.7169
+                  },
+                  "event_lng": {
+                    "type": "number",
+                    "example": -9.1395
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Team dispatched"
+          }
+        }
+      }
+    },
+    "/missions": {
+      "get": {
+        "operationId": "missions_list",
+        "summary": "List missions",
+        "tags": [
+          "Missions"
+        ],
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CREATED",
+                "SENT",
+                "ACK",
+                "ON_ROUTE",
+                "ON_SITE",
+                "COMPLETED",
+                "FAILED"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of missions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Mission"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/{missionId}": {
+      "get": {
+        "operationId": "missions_get",
+        "summary": "Get mission",
+        "tags": [
+          "Missions"
+        ],
+        "parameters": [
+          {
+            "name": "missionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mission detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mission"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/missions/{missionId}/status": {
+      "patch": {
+        "operationId": "missions_update_status",
+        "summary": "Update mission status",
+        "description": "Called by the field operator SDK to progress the mission lifecycle. Triggers `mission.status_updated` webhook.",
+        "tags": [
+          "Missions"
+        ],
+        "parameters": [
+          {
+            "name": "missionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "CREATED",
+                      "SENT",
+                      "ACK",
+                      "ON_ROUTE",
+                      "ON_SITE",
+                      "COMPLETED",
+                      "FAILED"
+                    ]
+                  },
+                  "feedback": {
+                    "type": "object",
+                    "description": "Opaque feedback payload — schema defined by the active parser for the vertical"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mission updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mission"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tenant/api-keys": {
+      "get": {
+        "operationId": "tenant_api_keys_list",
+        "summary": "List API keys",
+        "tags": [
+          "Tenant"
+        ],
+        "responses": {
+          "200": {
+            "description": "Active API keys (prefix only — full key never returned after creation)"
+          }
+        }
+      }
+    },
+    "/tenant/api-keys/rotate": {
+      "post": {
+        "operationId": "tenant_api_keys_rotate",
+        "summary": "Rotate API key",
+        "description": "Generates a new API key and sets a grace period on the previous key. The previous key remains valid during the grace period to allow zero-downtime rotation.",
+        "tags": [
+          "Tenant"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "environment": {
+                    "type": "string",
+                    "enum": [
+                      "production",
+                      "sandbox"
+                    ],
+                    "default": "production"
+                  },
+                  "grace_hours": {
+                    "type": "integer",
+                    "default": 24,
+                    "minimum": 1,
+                    "maximum": 168
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "New key generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "new_key": {
+                      "type": "string",
+                      "example": "wede_live_abc123..."
+                    },
+                    "grace_hours": {
+                      "type": "integer"
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
@@ -1849,7 +2364,7 @@
         "type": "apiKey",
         "in": "header",
         "name": "X-Wede-API-Key",
-        "description": "API Key emitida pela Wede no onboarding do tenant.\nFormato: `wede_live_<32chars>` (produ\u00e7\u00e3o) ou `wede_test_<32chars>` (sandbox).\n"
+        "description": "API Key emitida pela Wede no onboarding do tenant.\nFormato: `wede_live_<32chars>` (produção) ou `wede_test_<32chars>` (sandbox).\n"
       },
       "BearerAuth": {
         "type": "http",
@@ -1865,7 +2380,7 @@
         "schema": {
           "type": "string"
         },
-        "description": "Cursor opaco para pagina\u00e7\u00e3o (obtido de `next_cursor` na resposta anterior)"
+        "description": "Cursor opaco para paginação (obtido de `next_cursor` na resposta anterior)"
       },
       "PageLimit": {
         "name": "limit",
@@ -1876,12 +2391,12 @@
           "maximum": 200,
           "default": 50
         },
-        "description": "N\u00famero m\u00e1ximo de resultados por p\u00e1gina"
+        "description": "Número máximo de resultados por página"
       }
     },
     "responses": {
       "Unauthorized": {
-        "description": "API Key inv\u00e1lida ou ausente",
+        "description": "API Key inválida ou ausente",
         "content": {
           "application/json": {
             "schema": {
@@ -1889,14 +2404,14 @@
             },
             "example": {
               "error": "unauthorized",
-              "message": "API Key inv\u00e1lida ou expirada.",
+              "message": "API Key inválida ou expirada.",
               "request_id": "req_abc123"
             }
           }
         }
       },
       "BadRequest": {
-        "description": "Payload inv\u00e1lido",
+        "description": "Payload inválido",
         "content": {
           "application/json": {
             "schema": {
@@ -1906,7 +2421,7 @@
         }
       },
       "NotFound": {
-        "description": "Recurso n\u00e3o encontrado",
+        "description": "Recurso não encontrado",
         "content": {
           "application/json": {
             "schema": {
@@ -1916,7 +2431,7 @@
         }
       },
       "UnprocessableEntity": {
-        "description": "Payload v\u00e1lido mas semanticamente inaceit\u00e1vel",
+        "description": "Payload válido mas semanticamente inaceitável",
         "content": {
           "application/json": {
             "schema": {
@@ -1972,7 +2487,7 @@
           },
           "scope": {
             "type": "string",
-            "description": "Espa\u00e7o-separado de permiss\u00f5es solicitadas",
+            "description": "Espaço-separado de permissões solicitadas",
             "example": "events:write events:read sync:write webhooks:read"
           },
           "ttl_seconds": {
@@ -1980,7 +2495,7 @@
             "minimum": 300,
             "maximum": 86400,
             "default": 3600,
-            "description": "Dura\u00e7\u00e3o do token em segundos"
+            "description": "Duração do token em segundos"
           }
         }
       },
@@ -1989,7 +2504,7 @@
         "properties": {
           "token": {
             "type": "string",
-            "description": "JWT de sess\u00e3o"
+            "description": "JWT de sessão"
           },
           "expires_at": {
             "type": "string",
@@ -2013,7 +2528,7 @@
           "previous_key_expires_at": {
             "type": "string",
             "format": "date-time",
-            "description": "Momento em que a chave anterior \u00e9 invalidada (per\u00edodo de gra\u00e7a)"
+            "description": "Momento em que a chave anterior é invalidada (período de graça)"
           }
         }
       },
@@ -2057,23 +2572,23 @@
               "high",
               "critical"
             ],
-            "description": "Define a ordem de processamento e o canal m\u00ednimo de fallback.\n`critical` garante entrega mesmo em modo voice_only.\n"
+            "description": "Define a ordem de processamento e o canal mínimo de fallback.\n`critical` garante entrega mesmo em modo voice_only.\n"
           },
           "idempotency_key": {
             "type": "string",
             "maxLength": 128,
-            "description": "UUID v4 gerado pelo integrador. Garante que o mesmo evento n\u00e3o \u00e9\nprocessado mais de uma vez, mesmo em caso de retry ou sync offline.\n"
+            "description": "UUID v4 gerado pelo integrador. Garante que o mesmo evento não é\nprocessado mais de uma vez, mesmo em caso de retry ou sync offline.\n"
           },
           "payload": {
             "type": "object",
-            "description": "Corpo do evento espec\u00edfico do tipo. Schema validado contra o tipo declarado.\nVaria por `type` e `vertical`. Ver exemplos na documenta\u00e7\u00e3o de cada vertical.\n"
+            "description": "Corpo do evento específico do tipo. Schema validado contra o tipo declarado.\nVaria por `type` e `vertical`. Ver exemplos na documentação de cada vertical.\n"
           },
           "metadata": {
             "type": "object",
             "properties": {
               "zone_id": {
                 "type": "string",
-                "description": "Zona geogr\u00e1fica onde o evento foi gerado"
+                "description": "Zona geográfica onde o evento foi gerado"
               },
               "operator_id": {
                 "type": "string",
@@ -2081,12 +2596,12 @@
               },
               "sdk_version": {
                 "type": "string",
-                "description": "Vers\u00e3o do SDK (preenchido automaticamente pelo SDK)"
+                "description": "Versão do SDK (preenchido automaticamente pelo SDK)"
               },
               "offline_generated_at": {
                 "type": "string",
                 "format": "date-time",
-                "description": "Timestamp local de gera\u00e7\u00e3o (quando offline). Preenchido pelo SDK."
+                "description": "Timestamp local de geração (quando offline). Preenchido pelo SDK."
               },
               "connectivity_state_at_generation": {
                 "type": "string",
@@ -2108,7 +2623,7 @@
           "event_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identificador imut\u00e1vel do evento na plataforma Wede"
+            "description": "Identificador imutável do evento na plataforma Wede"
           },
           "idempotency_key": {
             "type": "string"
@@ -2133,7 +2648,7 @@
           },
           "estimated_delivery_ms": {
             "type": "integer",
-            "description": "Estimativa de lat\u00eancia de entrega em milissegundos (null se offline)",
+            "description": "Estimativa de latência de entrega em milissegundos (null se offline)",
             "nullable": true
           },
           "request_id": {
@@ -2218,7 +2733,7 @@
               },
               "lifecycle": {
                 "type": "array",
-                "description": "Hist\u00f3rico completo de estados com timestamps",
+                "description": "Histórico completo de estados com timestamps",
                 "items": {
                   "type": "object",
                   "properties": {
@@ -2393,7 +2908,7 @@
           },
           "pending_sync": {
             "type": "integer",
-            "description": "Eventos gerados offline ainda n\u00e3o sincronizados"
+            "description": "Eventos gerados offline ainda não sincronizados"
           },
           "synced_24h": {
             "type": "integer"
@@ -2631,7 +3146,7 @@
           },
           "device_id": {
             "type": "string",
-            "description": "Identificador an\u00f3nimo do dispositivo SDK"
+            "description": "Identificador anónimo do dispositivo SDK"
           }
         }
       },
@@ -2666,7 +3181,7 @@
           "secret": {
             "type": "string",
             "minLength": 32,
-            "description": "Secret para valida\u00e7\u00e3o HMAC-SHA256 da assinatura Wede"
+            "description": "Secret para validação HMAC-SHA256 da assinatura Wede"
           },
           "active": {
             "type": "boolean",
@@ -2865,7 +3380,7 @@
           },
           "series": {
             "type": "array",
-            "description": "S\u00e9rie temporal com granularidade solicitada",
+            "description": "Série temporal com granularidade solicitada",
             "items": {
               "type": "object",
               "properties": {
@@ -2909,7 +3424,7 @@
             "minimum": 5,
             "maximum": 3600,
             "default": 60,
-            "description": "Dura\u00e7\u00e3o da simula\u00e7\u00e3o. Ap\u00f3s expirar, volta a `online`."
+            "description": "Duração da simulação. Após expirar, volta a `online`."
           }
         }
       },
@@ -3124,7 +3639,7 @@
         "properties": {
           "error": {
             "type": "string",
-            "description": "C\u00f3digo de erro em snake_case",
+            "description": "Código de erro em snake_case",
             "examples": [
               "unauthorized",
               "invalid_payload",
@@ -3136,7 +3651,7 @@
           },
           "message": {
             "type": "string",
-            "description": "Mensagem leg\u00edvel por humanos"
+            "description": "Mensagem legível por humanos"
           },
           "details": {
             "type": "array",
@@ -3155,12 +3670,259 @@
           },
           "request_id": {
             "type": "string",
-            "description": "ID da request para correla\u00e7\u00e3o em logs e suporte"
+            "description": "ID da request para correlação em logs e suporte"
           },
           "docs_url": {
             "type": "string",
             "format": "uri",
             "nullable": true
+          }
+        }
+      },
+      "Team": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "vertical": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "on_mission",
+              "offline"
+            ]
+          },
+          "zone_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TeamMember"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TeamMember": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "available",
+              "on_mission",
+              "offline"
+            ]
+          },
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          },
+          "last_seen": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ScoredTeam": {
+        "type": "object",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "team_name": {
+            "type": "string"
+          },
+          "distance_km": {
+            "type": "number"
+          },
+          "eta_min": {
+            "type": "number"
+          },
+          "score": {
+            "type": "number"
+          },
+          "recommended": {
+            "type": "boolean"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "internet",
+              "sms",
+              "voice"
+            ]
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number"
+              },
+              "lng": {
+                "type": "number"
+              },
+              "source": {
+                "type": "string",
+                "enum": [
+                  "gps",
+                  "zone",
+                  "unknown"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "Mission": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "event_id": {
+            "type": "string"
+          },
+          "team_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "SENT",
+              "ACK",
+              "ON_ROUTE",
+              "ON_SITE",
+              "COMPLETED",
+              "FAILED"
+            ]
+          },
+          "channel_used": {
+            "type": "string"
+          },
+          "vertical": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "event_lat": {
+            "type": "number"
+          },
+          "event_lng": {
+            "type": "number"
+          },
+          "dispatched_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "on_route_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "on_site_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "feedback": {
+            "type": "object"
+          }
+        }
+      },
+      "Billing": {
+        "type": "object",
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "country": {
+            "type": "string"
+          },
+          "current_plan": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "display_name": {
+                "type": "string"
+              },
+              "max_events_per_year": {
+                "type": "integer"
+              },
+              "pricing": {
+                "type": "object",
+                "properties": {
+                  "price_yearly": {
+                    "type": "number"
+                  },
+                  "currency": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "events_this_year": {
+                "type": "integer"
+              },
+              "sms_used": {
+                "type": "integer"
+              },
+              "voice_used": {
+                "type": "integer"
+              },
+              "dispatches_total": {
+                "type": "integer"
+              },
+              "missions_total": {
+                "type": "integer"
+              }
+            }
           }
         }
       }

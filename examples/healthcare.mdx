@@ -1,0 +1,154 @@
+---
+title: Healthcare — Emergency Dispatch
+description: Complete integration example for emergency medical dispatch with offline resilience
+---
+
+## Overview
+
+This example covers the complete workflow for emergency medical dispatch: a patient event arrives via the Wede API, the proximity engine scores available teams, the best team is dispatched, and the field operator updates the mission lifecycle in real time.
+
+The entire flow works offline. If the hospital network fails at any point, the SDK queues operations locally and syncs when connectivity is restored — without any changes to your integration.
+
+---
+
+## 1. Submit an Emergency Event
+
+```typescript
+import { WedeClient } from '@wede/sdk'
+
+const client = new WedeClient({ apiKey: 'wede_live_YOUR_KEY' })
+
+const event = await client.sendEvent({
+  type: 'CARDIAC_ARREST',
+  priority: 'critical',
+  vertical: 'healthcare',
+  idempotency_key: `cardiac-${Date.now()}-amb`,
+  zone_id: 'zone_lisbon_norte',
+  payload: {
+    patient_age: 67,
+    location: { lat: 38.7369, lng: -9.1395 },
+    symptoms: ['chest_pain', 'loss_of_consciousness'],
+    bystander_cpr: true,
+  },
+})
+
+console.log(event.event_id) // use for dispatch
+```
+
+<Note>
+  The payload is opaque to Wede. Encrypt it before sending if it contains ePHI. Wede transports — it does not inspect.
+</Note>
+
+---
+
+## 2. Score Available Teams
+
+```typescript
+const scored = await client.scoreTeams({
+  lat: 38.7369,
+  lng: -9.1395,
+  vertical: 'healthcare',
+  priority: 'critical',
+  required_equipment: ['defibrillator', 'oxygen'],
+})
+
+const recommended = scored.data.scored.find(t => t.recommended)
+console.log(`${recommended.team_name} — ${recommended.distance_km} km — ETA ${recommended.eta_min} min`)
+```
+
+The score engine considers: GPS distance (haversine), equipment match, member availability, vertical capability, and zone geofence. The same algorithm runs offline in the SDK.
+
+---
+
+## 3. Dispatch the Team
+
+```typescript
+const dispatch = await client.dispatch({
+  event_id: event.event_id,
+  team_id: recommended.team_id,
+  event_lat: 38.7369,
+  event_lng: -9.1395,
+  notes: 'Cardiac arrest — bystander CPR in progress',
+})
+```
+
+This triggers the `team.dispatched` webhook and creates a mission in `CREATED` status.
+
+---
+
+## 4. Field Operator — Mission Lifecycle (React Native)
+
+```typescript
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { WedeClient } from '@wede/react-native-sdk'
+
+const fieldClient = new WedeClient({
+  apiKey: 'wede_live_FIELD_KEY',
+  storage: AsyncStorage, // enables offline queue
+})
+
+// Load assigned missions
+const missions = await fieldClient.listMissions({ status: 'SENT' })
+const mission = missions.data.data[0]
+
+// Acknowledge
+await fieldClient.updateMissionStatus(mission.id, 'ACK')
+
+// En route
+await fieldClient.updateMissionStatus(mission.id, 'ON_ROUTE')
+
+// On site — works offline, syncs automatically
+const result = await fieldClient.updateMissionStatus(mission.id, 'ON_SITE')
+if (result.queued) {
+  console.log('Offline — status queued, will sync on reconnection')
+}
+
+// Complete with feedback
+await fieldClient.updateMissionStatus(mission.id, 'COMPLETED', {
+  patient_stable: true,
+  intervention: 'defibrillation',
+  transport_to: 'Hospital Santa Maria',
+  on_site_duration_min: 12,
+})
+```
+
+---
+
+## 5. Webhooks — Real-Time Notifications
+
+Configure a webhook to receive mission lifecycle events:
+
+```bash
+curl -X POST https://api.wede.pt/v1/webhooks \
+  -H "X-Wede-API-Key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-system.com/webhooks/wede",
+    "events": ["mission.created", "mission.status_updated", "team.dispatched"],
+    "secret": "your-hmac-secret"
+  }'
+```
+
+Payload example for `mission.status_updated`:
+
+```json
+{
+  "event": "mission.status_updated",
+  "mission_id": "uuid",
+  "team_id": "uuid",
+  "status": "ON_SITE",
+  "timestamp": "2026-05-27T14:23:11Z"
+}
+```
+
+---
+
+## HIPAA Alignment
+
+| Requirement | This Integration |
+|-------------|-----------------|
+| Access Controls | API key scoped to tenant, RBAC enforced per role |
+| Audit Controls | Every operation logged with user, IP, timestamp |
+| Integrity Controls | SHA-256 per event, idempotency key enforced |
+| Transmission Security | TLS 1.2+ enforced, no unencrypted fallback |
+| Payload Privacy | ePHI encrypted by integrator before sending — Wede never reads it |

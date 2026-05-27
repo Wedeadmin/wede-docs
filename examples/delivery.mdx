@@ -1,0 +1,150 @@
+---
+title: Delivery & Logistics — Driver Dispatch
+description: Complete integration example for last-mile delivery and ride-hailing with offline resilience
+---
+
+## Overview
+
+This example covers driver dispatch for delivery and ride-hailing operations. A service request arrives, the proximity engine finds the nearest available driver, dispatches them, and tracks the delivery to completion — all working offline when the driver loses connectivity.
+
+---
+
+## 1. Submit a Service Request
+
+```typescript
+import { WedeClient } from '@wede/sdk'
+
+const client = new WedeClient({ apiKey: 'wede_live_YOUR_KEY' })
+
+const event = await client.sendEvent({
+  type: 'RIDE_REQUEST',
+  priority: 'normal',
+  vertical: 'delivery',
+  idempotency_key: `ride-${customerId}-${Date.now()}`,
+  zone_id: 'zone_maputo_central',
+  payload: {
+    customer_id: 'cust_29841',
+    pickup: { lat: -25.9692, lng: 32.5732, address: 'Av. Julius Nyerere, Maputo' },
+    dropoff: { lat: -25.9012, lng: 32.5891, address: 'Aeroporto Internacional de Maputo' },
+    vehicle_type: 'standard',
+  },
+})
+```
+
+---
+
+## 2. Score and Dispatch Nearest Driver
+
+```typescript
+const scored = await client.scoreTeams({
+  lat: -25.9692,
+  lng: 32.5732,
+  vertical: 'delivery',
+  priority: 'normal',
+})
+
+const driver = scored.data.scored.find(t => t.recommended)
+console.log(`${driver.team_name} — ${driver.distance_km} km — ETA ${driver.eta_min} min`)
+
+await client.dispatch({
+  event_id: event.event_id,
+  team_id: driver.team_id,
+  event_lat: -25.9692,
+  event_lng: 32.5732,
+  notes: `Pickup: Av. Julius Nyerere — Dropoff: Aeroporto`,
+})
+```
+
+---
+
+## 3. Driver App — Offline-First (React Native)
+
+```typescript
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { WedeClient } from '@wede/react-native-sdk'
+
+const driverClient = new WedeClient({
+  apiKey: 'wede_live_DRIVER_KEY',
+  storage: AsyncStorage,
+})
+
+// Accept ride — works even without internet
+const ack = await driverClient.updateMissionStatus(missionId, 'ACK')
+
+// Update GPS every 30s — queued offline if no connectivity
+setInterval(async () => {
+  const pos = await getCurrentPosition()
+  await driverClient.updateMemberLocation(teamId, memberId, pos.lat, pos.lng)
+}, 30000)
+
+// En route to pickup
+await driverClient.updateMissionStatus(missionId, 'ON_ROUTE')
+
+// Arrived at pickup
+await driverClient.updateMissionStatus(missionId, 'ON_SITE')
+
+// Trip complete with feedback
+await driverClient.updateMissionStatus(missionId, 'COMPLETED', {
+  distance_km: 8.4,
+  duration_min: 22,
+  fare: 450,
+  currency: 'MZN',
+  rating_requested: true,
+})
+
+// Flush any queued operations when connectivity restored
+const { flushed, failed } = await driverClient.flushQueue()
+console.log(`Synced ${flushed} operations`)
+```
+
+---
+
+## 4. Real-Time GPS Tracking
+
+The dashboard shows driver positions in real time. GPS coordinates are updated via `updateMemberLocation` and displayed on the operational map for supervisors.
+
+```typescript
+// Swift — iOS driver app
+let client = WedeClient(apiKey: "wede_live_DRIVER_KEY")
+
+// Update location
+try await client.updateMemberLocation(
+  teamId: teamId,
+  memberId: memberId,
+  lat: location.coordinate.latitude,
+  lng: location.coordinate.longitude
+)
+```
+
+---
+
+## 5. Webhooks for Your Backend
+
+```typescript
+// Your backend receives real-time updates
+app.post('/webhooks/wede', (req, res) => {
+  const { event, mission_id, status } = req.body
+
+  if (event === 'mission.status_updated') {
+    if (status === 'ON_ROUTE') notifyCustomer(mission_id, 'Driver on the way')
+    if (status === 'ON_SITE')  notifyCustomer(mission_id, 'Driver arrived')
+    if (status === 'COMPLETED') finaliseTrip(mission_id)
+  }
+
+  res.sendStatus(200)
+})
+```
+
+---
+
+## Offline Scenario — What Happens
+
+Driver enters a tunnel or rural area with no connectivity:
+
+1. `updateMemberLocation` — queued locally in AsyncStorage
+2. `updateMissionStatus('COMPLETED')` — queued locally
+3. Connectivity restored — `flushQueue()` syncs all operations in order
+4. Your webhook receives the events with original timestamps
+5. Zero data loss, zero duplicates — idempotency key enforced
+
+No changes to your integration required.

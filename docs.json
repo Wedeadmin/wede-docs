@@ -18,7 +18,8 @@
             "pages": [
               "index",
               "quickstart",
-              "authentication"
+              "authentication",
+              "changelog"
             ]
           },
           {
@@ -35,6 +36,14 @@
               "concepts/score-engine",
               "concepts/geofencing",
               "concepts/metering"
+            ]
+          },
+          {
+            "group": "Examples by Vertical",
+            "pages": [
+              "examples/healthcare",
+              "examples/banking",
+              "examples/delivery"
             ]
           }
         ]
@@ -153,7 +162,7 @@
         "tab": "SDKs",
         "groups": [
           {
-            "group": "Overview",
+            "group": "SDKs",
             "pages": [
               "sdks/overview"
             ]
