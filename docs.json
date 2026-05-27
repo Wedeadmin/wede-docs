@@ -70,7 +70,8 @@
               "api-reference/teams/score",
               "api-reference/teams/members",
               "api-reference/teams/equipment",
-              "api-reference/teams/location-config"
+              "api-reference/teams/location-config",
+              "api-reference/teams/verticals"
             ]
           },
           {

@@ -1,6 +1,6 @@
 ---
-title: Security
-description: How Wede protects your data and operations
+title: Security & RBAC
+description: Authentication, access control and data protection in wede
 ---
 
 ## Authentication
@@ -10,7 +10,7 @@ All API requests require authentication via API key or JWT token. See [Authentic
 - **API keys** — for server-to-server integrations
 - **JWT tokens** — for user sessions and dashboard access
 - Tokens expire after **8 hours**
-- API keys can be rotated at any time from the [dashboard](https://app.wede.pt/dashboard/settings)
+- API keys can be rotated at any time from the [dashboard](https://app.wede.pt)
 
 ## Transport Security
 
@@ -18,65 +18,34 @@ All communication with the Wede API is encrypted over HTTPS (TLS 1.2+). Unencryp
 
 ## Role-Based Access Control
 
-Every user has a role that defines what they can see and do:
+Wede uses a 7-level cascading RBAC model. No level can grant more than it has. No level can delegate what it has not been explicitly permitted to delegate. Privilege escalation is mathematically impossible.
 
-| Role | Access Level |
-|------|-------------|
-| `company_admin` | Full tenant access including billing and user management |
-| `company_tech` | Technical access — API, webhooks, zones, parsers |
-| `operational_supervisor` | Operational access — events, zones, dispatch, teams |
-| `field_operator` | Field access — events and zone status only |
-| `corporate_client` | Read-only access to reports and dashboards |
-| `api_user` | Programmatic API access only, no dashboard |
-| `country_admin` | Multi-tenant access for assigned countries |
+| Level | Role | Access |
+|-------|------|--------|
+| 1 | `wede_global_admin` | Full platform control — infrastructure, algorithms, billing, security, all tenants |
+| 2 | `wede_tech_ops` | Devices, sync, logs, API — no billing, no tenant config |
+| 3 | `country_admin` | Regional management — operators, teams, SLAs, zones by country |
+| 4 | `company_admin` | Full tenant access — teams, events, dispatch, billing |
+| 5 | `company_tech` | SDK, API keys, integrations, webhooks, parsers — no operational management |
+| 6 | `operational_supervisor` | Events, dispatch, teams, zones — no configuration |
+| 7 | `field_operator` | Receive missions and submit feedback only — minimum access |
 
-## Audit Trail
+### Cascade principle
 
-Every operation performed in Wede is logged in an immutable audit trail:
+- Wede Global Admin defines the full universe of available features
+- Each level receives a subset of the level above
+- Each level may or may not have permission to delegate each received feature
+- Delegation is explicit — not included by default
+- Example: Wede activates emergency dispatch for a tenant without delegation — the tenant uses it but cannot grant it to sub-users
 
-- User identity and role
-- Action performed
-- Resource affected
-- Timestamp and IP address
-- Request ID for traceability
+## Data isolation
 
-Audit logs are available in the [dashboard](https://app.wede.pt/dashboard/audit) and via the API.
+Every tenant's data is isolated at the database level by `tenant_id`. No tenant can access another tenant's data regardless of role.
 
-## Data Privacy
+## Demo mode
 
-- Event payloads are transported by Wede but not inspected or stored beyond delivery
-- All data is processed within EU infrastructure (GCP europe-west1)
-- Data residency is configurable per country and per zone
-- GDPR-compliant data handling for EU operations
+Users without a tenant association operate in `demo_mode: true`. They see static demo data only. Demo mode never affects production data. Tenants with an active account always use production. These are two completely separate worlds.
 
-## API Key Security
+## Payload opacity
 
-<Warning>
-  Never expose your API key in client-side code, public repositories, or logs.
-</Warning>
-
-Best practices:
-
-- Store API keys in environment variables or a secrets manager
-- Use separate API keys per integration or environment
-- Rotate keys regularly via the dashboard
-- Revoke compromised keys immediately
-
-## Idempotency
-
-All event submissions require an `idempotency_key`. This prevents duplicate processing if a request is retried due to network failure.
-
-Choose idempotency keys that are unique per logical event:
-
-```bash
-"idempotency_key": "dispatch-2026-05-19-amb07-001"
-```
-
-## Compliance
-
-Wede is designed for regulated industries:
-
-- **Healthcare** — designed for HIPAA-compatible deployments
-- **Banking** — PCI-DSS compatible transport layer
-- **Government** — configurable data residency per jurisdiction
-- **Audit** — immutable logs with full traceability
+Wede never inspects event payloads. The client encrypts — Wede transports. This is a design principle, not a configuration option.

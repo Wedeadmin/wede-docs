@@ -1,14 +1,77 @@
 ---
 title: Update Zone
-description: Update zone configuration or connectivity state
+description: Update zone configuration, connectivity state or boundary polygon
 ---
 
 ## Endpoint
+## Authentication
+
+Requires a valid API key or JWT. `country_admin` can only update zones in their assigned countries. `company_admin` can only update zones associated with their tenant.
+
+## Request Body
+
+All fields are optional. Only provided fields are updated.
+
+```json
+## Authentication
+
+Requires a valid API key or JWT. `country_admin` can only update zones in their assigned countries. `company_admin` can only update zones associated with their tenant.
+
+## Request Body
+
+All fields are optional. Only provided fields are updated.
+
+```json
+{
+  "name": "Hospital Lisboa Norte",
+  "region": "Lisboa",
+  "lat_center": 38.7169,
+  "lng_center": -9.1395,
+  "connectivity_state": "degraded",
+  "verticals_active": ["healthcare", "emergency"],
+  "boundary": [
+    { "lat": 38.72, "lng": -9.14 },
+    { "lat": 38.71, "lng": -9.13 },
+    { "lat": 38.70, "lng": -9.15 },
+    { "lat": 38.72, "lng": -9.14 }
+  ]
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Zone display name |
+| `region` | string | Region or district name |
+| `lat_center` | number | Zone center latitude — used as initial position for new team members |
+| `lng_center` | number | Zone center longitude |
+| `connectivity_state` | string | `online`, `degraded`, `sms_only`, `offline` |
+| `verticals_active` | string[] | Active verticals for this zone |
+| `boundary` | array | Polygon boundary — array of `{ lat, lng }` points, minimum 3 points |
+
+## Boundary polygon
+
+The `boundary` field defines the zone geofence used by the score engine. Teams with a zone boundary get a `0.2` score penalty for events outside their polygon.
+
+The boundary is drawn interactively in the dashboard under **Zones → Edit Zone**. It is stored as JSONB and returned in all zone responses.
+
+To clear a boundary, send `"boundary": []`.
+
+## Response
+
+Returns the updated zone object including the full `boundary` array.
+
 ## Example
 
 ```bash
-curl -X PATCH https://api.wede.pt/v1/tenant/zones/zone_lisbon_central \
-  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+curl -X PATCH https://api.wede.pt/v1/tenant/zones/zone_hospital_lisboa \
+  -H "Authorization: Bearer YOUR_JWT" \
   -H "Content-Type: application/json" \
-  -d '{"connectivity_state": "degraded"}'
+  -d '{
+    "connectivity_state": "degraded",
+    "boundary": [
+      { "lat": 38.72, "lng": -9.14 },
+      { "lat": 38.71, "lng": -9.13 },
+      { "lat": 38.70, "lng": -9.15 }
+    ]
+  }'
 ```

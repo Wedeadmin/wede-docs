@@ -1,0 +1,60 @@
+---
+title: Team Verticals & Capabilities
+description: Configure which verticals and event types a team can respond to
+---
+
+## List Team Verticals
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "vertical": "healthcare",
+      "event_types": ["CARDIAC", "TRAUMA", "RESPIRATORY"],
+      "parser_id": "uuid"
+    }
+  ]
+}
+```
+
+---
+
+## Add Vertical
+Requires `teams:manage` permission.
+
+### Request Body
+
+```json
+{
+  "vertical": "healthcare",
+  "event_types": ["CARDIAC", "TRAUMA", "RESPIRATORY"],
+  "parser_id": "uuid"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `vertical` | string | Yes | The vertical this team covers — `healthcare`, `emergency`, `banking`, `telecom`, `delivery`, `gov`, `energy` |
+| `event_types` | string[] | No | Specific event types within the vertical the team can handle |
+| `parser_id` | string | No | Parser to use for events in this vertical |
+
+The score engine uses this configuration to determine capability match. A team that does not list the event vertical gets a capability penalty.
+
+---
+
+## Update Vertical
+### Request Body
+
+```json
+{
+  "event_types": ["CARDIAC", "TRAUMA"],
+  "parser_id": "uuid"
+}
+```
+
+---
+
+## Remove Vertical
+Requires `teams:manage` permission.
