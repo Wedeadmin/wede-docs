@@ -1,0 +1,72 @@
+---
+title: Team Members
+description: Add, remove and update the status of team members
+---
+
+## Add Member
+Requires `teams:manage` permission.
+
+### Request Body
+
+```json
+{
+  "name": "Dr. Ana Costa",
+  "role": "PHYSICIAN",
+  "status": "available",
+  "user_id": "uuid"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Member display name |
+| `role` | string | Yes | Role within the team |
+| `status` | string | No | `available`, `on_mission`, `offline` — defaults to `available` |
+| `user_id` | string | No | Link to an existing platform user for GPS tracking and audit trail |
+
+When the team has a zone associated, the member is initialised with the zone center coordinates as their starting position.
+
+### Response
+
+```json
+{
+  "id": "uuid",
+  "team_id": "uuid",
+  "name": "Dr. Ana Costa",
+  "role": "PHYSICIAN",
+  "status": "available",
+  "lat": 38.716900,
+  "lng": -9.139500,
+  "last_seen": "2026-05-27T10:00:00Z"
+}
+```
+
+---
+
+## Update Member Status
+### Request Body
+
+```json
+{ "status": "on_mission" }
+```
+
+---
+
+## Update Member Location
+Used by the SDK to send GPS coordinates periodically. Intervals are configured per tenant via the location config endpoint.
+
+### Request Body
+
+```json
+{
+  "lat": 38.7169,
+  "lng": -9.1395
+}
+```
+
+Include the header `X-Wede-Channel: sms` when the update is sent via SMS fallback — this is recorded for billing purposes.
+
+---
+
+## Remove Member
+Requires `teams:manage` permission.

@@ -1,0 +1,52 @@
+---
+title: Team Equipment
+description: Manage equipment assigned to a team
+---
+
+## List Equipment
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "code": "AED",
+      "name": "Automated External Defibrillator",
+      "status": "operational",
+      "notes": "Checked 2026-05-01",
+      "created_at": "2026-05-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## Add Equipment
+Requires `teams:manage` permission.
+
+### Request Body
+
+```json
+{
+  "code": "AED",
+  "name": "Automated External Defibrillator",
+  "status": "operational",
+  "notes": "Optional notes"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `code` | string | Yes | Short equipment code — used in score engine matching |
+| `name` | string | Yes | Full equipment name |
+| `status` | string | No | `operational`, `maintenance`, `out_of_service` — defaults to `operational` |
+| `notes` | string | No | Optional notes |
+
+Only equipment with `status: operational` is considered by the score engine when matching against `required_equipment`.
+
+---
+
+## Update Equipment
+Requires `teams:manage` permission.

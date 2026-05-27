@@ -1,0 +1,70 @@
+---
+title: Metering & Usage
+description: How wede tracks and bills operational usage
+---
+
+## Overview
+
+Every operation on the wede platform is metered and debited from the tenant's annual plan. Usage is tracked in real time in the `tenant_annual_usage` table and visible in the billing dashboard.
+
+## Billable operations
+
+| Operation | Trigger | Channel cost |
+|-----------|---------|--------------|
+| Event via internet | `POST /v1/events` with internet channel | No extra cost |
+| Event via SMS | `POST /v1/events` with SMS channel | Yes — per SMS |
+| Event via voice | `POST /v1/events` with voice channel | Yes — per voice minute |
+| Event via LoRa | `POST /v1/events` with LoRa channel | Yes — per transmission |
+| Event via satellite | `POST /v1/events` with satellite channel | Yes — per packet |
+| Dispatch | `POST /v1/teams/dispatch` | No extra cost |
+| Mission created | `POST /v1/missions` | No extra cost |
+| Location update offline | `PATCH /v1/teams/:id/members/:memberId/location` with `X-Wede-Channel: sms` | Yes — per SMS |
+
+Internet-based operations (events, dispatch, missions, location updates via IP) count against the plan's `max_events_per_year` limit. Off-channel operations (SMS, voice, LoRa, satellite) also incur the per-unit channel cost defined in `country_channel_costs`.
+
+## Annual plans
+
+All wede plans are annual. There are no monthly plans.
+
+- Plan limits reset on the plan anniversary date
+- Overage is billed at the per-unit channel rate
+- Tenants can pre-load credit or be invoiced at period end
+
+## Usage tracking
+
+Usage is accumulated in `tenant_annual_usage`:
+
+```json
+{
+  "events_total": 12400,
+  "events_internet": 12100,
+  "events_sms": 280,
+  "events_voice": 20,
+  "location_updates_offline": 840,
+  "dispatches_total": 156,
+  "dispatches_offline": 12,
+  "missions_total": 156,
+  "overage_events": 0,
+  "overage_amount_eur": 0
+}
+```
+
+## Overage
+
+When `events_total` exceeds `max_events_per_year`:
+- Operations continue without interruption
+- `overage_events` counter increments
+- `overage_amount_eur` accumulates at the overage rate
+- Tenant is notified at 70%, 80% and 90% consumption thresholds
+
+## Channel costs
+
+Channel costs are defined per country, per channel in `country_channel_costs`. Each country has independent pricing reflecting local telco rates.
+
+```json
+[
+  { "channel": "sms", "cost_per_unit": 0.04, "currency": "EUR" },
+  { "channel": "voice", "cost_per_unit": 0.08, "currency": "EUR" },
+  { "channel": "lora", "cost_per_unit": 0.01, "currency": "EUR" }
+]
+```

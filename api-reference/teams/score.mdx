@@ -1,0 +1,83 @@
+---
+title: Dispatch Score
+description: Score and rank available teams for a given event using the proximity engine
+---
+
+## Endpoint
+## Authentication
+
+Requires a valid JWT with `dispatch:assign` permission.
+
+## Request Body
+
+```json
+{
+  "lat": 38.7169,
+  "lng": -9.1395,
+  "vertical": "healthcare",
+  "event_type": "CARDIAC",
+  "priority": "P1_CRITICAL",
+  "required_equipment": ["AED", "VENTILATOR"]
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `lat` | number | Yes | Event latitude |
+| `lng` | number | Yes | Event longitude |
+| `vertical` | string | No | Event vertical — filters by capability |
+| `event_type` | string | No | Specific event type within the vertical |
+| `priority` | string | No | Severity — `P1_CRITICAL`, `HIGH`, `MEDIUM`, `LOW` |
+| `required_equipment` | string[] | No | Equipment codes required for this event |
+
+## Response
+
+```json
+{
+  "scored": [
+    {
+      "team_id": "uuid",
+      "team_name": "Alpha Medical",
+      "status": "available",
+      "vertical": "healthcare",
+      "distance_km": 2.4,
+      "eta_min": 4,
+      "equipment_match": 0.95,
+      "member_availability": 1.0,
+      "score": 0.08,
+      "recommended": true,
+      "channel": "internet",
+      "position": {
+        "lat": 38.73,
+        "lng": -9.15,
+        "source": "gps",
+        "last_seen": "2026-05-27T10:00:00Z"
+      }
+    }
+  ],
+  "count": 3
+}
+```
+
+## Score Algorithm
+
+The score engine runs identically on the API (online) and SDK (offline). Lower score is better.
+| Component | Description |
+|-----------|-------------|
+| `travel_score` | Haversine distance normalised to 30 min max |
+| `capability_score` | Equipment and vertical match — lower is better match |
+| `member_score` | Member availability ratio — lower is more available |
+| `load_penalty` | 0.5 if team is `on_mission`, 0 otherwise |
+| `geofence_penalty` | 0.2 if event is outside team zone boundary, 0 otherwise |
+
+## Position Sources
+
+| Source | Description |
+|--------|-------------|
+| `gps` | Real GPS from a team member, updated within 10 minutes |
+| `zone` | Zone center coordinates — used when no fresh GPS is available |
+| `unknown` | No position data — team is still scored but distance is 0 |
+
+## Offline Compatibility
+
+This algorithm runs identically on the SDK without a server connection. When offline, the SDK uses the last known member positions and zone boundaries stored locally.

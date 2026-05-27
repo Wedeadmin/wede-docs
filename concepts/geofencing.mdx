@@ -1,0 +1,38 @@
+---
+title: Geofencing
+description: How zone boundaries control team eligibility for dispatch
+---
+
+## Overview
+
+Each zone can have a polygon boundary defined — a set of GPS coordinates that form a closed shape on the map. The score engine uses this boundary to determine whether a team is the right match for an event.
+
+## How it works
+
+When an event occurs at a given GPS location, the score engine checks whether that location falls inside each team's zone boundary using a **point-in-polygon ray casting algorithm**. This runs identically on the API (online) and on the SDK (offline) — the same result, no server required.
+The geofence penalty adds `0.20` to the score. Since lower scores are better, teams outside the event zone are ranked lower but not excluded — cross-zone escalation is always possible.
+
+## Defining a boundary
+
+Zone boundaries are defined in the dashboard under **Zones → Edit Zone**. Click on the map to place polygon points. The boundary is saved as a JSONB array of `{ lat, lng }` coordinates.
+
+```json
+{
+  "boundary": [
+    { "lat": 38.72, "lng": -9.14 },
+    { "lat": 38.71, "lng": -9.13 },
+    { "lat": 38.70, "lng": -9.15 },
+    { "lat": 38.72, "lng": -9.14 }
+  ]
+}
+```
+
+A valid polygon requires at least 3 points.
+
+## Offline compatibility
+
+Zone boundaries are stored locally on the SDK. The point-in-polygon check runs without any network connection — the same algorithm, the same result as the API.
+
+## Teams without a boundary
+
+If a zone has no boundary defined, the geofence check is skipped and no penalty is applied. All teams remain fully eligible.

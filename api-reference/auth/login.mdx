@@ -1,0 +1,39 @@
+---
+title: Login
+description: Authenticate with email and password to obtain a JWT
+---
+
+## Endpoint
+## Request Body
+
+```json
+{
+  "email": "admin@company.com",
+  "password": "your-password"
+}
+```
+
+## Response
+
+```json
+{
+  "token": "eyJhbGci...",
+  "expires_in": 28800,
+  "user": {
+    "id": "uuid",
+    "email": "admin@company.com",
+    "name": "John Smith",
+    "rbac_level": "company_admin",
+    "demo_mode": false,
+    "verticals": ["healthcare", "emergency"]
+  }
+}
+```
+
+The JWT expires in 8 hours (`expires_in` is in seconds). Include it in subsequent requests as `Authorization: Bearer <token>`.
+
+## Notes
+
+- `demo_mode: true` means the user has no tenant associated yet — they see static demo data
+- `rbac_level` determines what the user can access — see [RBAC](/concepts/security)
+- `verticals` are the operational verticals the user is configured for

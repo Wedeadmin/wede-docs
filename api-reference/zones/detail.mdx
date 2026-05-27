@@ -1,0 +1,31 @@
+---
+title: Zone Detail
+description: Get details for a specific zone including boundary polygon
+---
+
+## Endpoint
+## Response
+
+```json
+{
+  "id": "uuid",
+  "zone_code": "zone_hospital_lisboa",
+  "name": "Hospital Lisboa",
+  "country": "PT",
+  "region": "Lisboa",
+  "lat_center": "38.716900",
+  "lng_center": "-9.139500",
+  "boundary": [
+    { "lat": 38.72, "lng": -9.14 },
+    { "lat": 38.71, "lng": -9.13 },
+    { "lat": 38.70, "lng": -9.15 }
+  ],
+  "verticals_active": ["healthcare"],
+  "connectivity_state": "online",
+  "incident_active": false,
+  "last_state_change": "2026-05-27T10:00:00Z",
+  "created_at": "2026-05-01T00:00:00Z"
+}
+```
+
+The `boundary` field contains the polygon coordinates used by the score engine for geofencing. It is `null` if no boundary has been defined for this zone.

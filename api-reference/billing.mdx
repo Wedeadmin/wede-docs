@@ -1,0 +1,113 @@
+---
+title: Billing & Usage
+description: View plan details, usage consumption and invoice history
+---
+
+## Get Billing Overview
+Returns the current plan, usage for the current year, channel costs and available plans.
+
+### Response
+
+```json
+Returns the current plan, usage for the current year, channel costs and available plans.
+
+### Response
+
+```json
+{
+  "tenant_id": "uuid",
+  "country": "PT",
+  "current_plan": {
+    "id": "uuid",
+    "name": "growth",
+    "display_name": "Growth",
+    "max_events_per_year": 1000000,
+    "max_zones": 10,
+    "max_users": 50,
+    "max_webhooks": 20,
+    "sla_uptime_pct": 99.9,
+    "feature_flags": {
+      "emergency_dispatch": true,
+      "sms_fallback": true,
+      "voice_fallback": true,
+      "offline_decision": true
+    },
+    "pricing": {
+      "price_yearly": 50000,
+      "currency": "EUR"
+    }
+  },
+  "usage": {
+    "events_this_year": 12400,
+    "events_internet": 12100,
+    "sms_used": 280,
+    "voice_used": 20,
+    "lora_used": 0,
+    "satellite_used": 0,
+    "edge_used": 0,
+    "location_updates_offline": 840,
+    "dispatches_total": 156,
+    "dispatches_offline": 12,
+    "missions_total": 156,
+    "overage_events": 0,
+    "overage_amount_eur": 0
+  },
+  "channel_costs": [
+    { "channel": "sms", "cost_per_unit": 0.04, "currency": "EUR" },
+    { "channel": "voice", "cost_per_unit": 0.08, "currency": "EUR" }
+  ],
+  "available_plans": []
+}
+```
+
+## Plans
+
+All Wede plans are **annual** — there are no monthly plans. Pricing is defined per country in the local currency.
+
+| Plan | Events/year | Zones | Users | SLA |
+|------|-------------|-------|-------|-----|
+| Starter | 100,000 | 3 | 5 | 99.5% |
+| Growth | 1,000,000 | 10 | 50 | 99.9% |
+| Mission-Critical | Unlimited | Unlimited | Unlimited | 99.99% |
+
+## Billable Operations
+
+Every operation debits from the tenant annual plan:
+
+| Operation | Billed as |
+|-----------|-----------|
+| Event via internet | 1 event |
+| Event via SMS | 1 event + SMS cost |
+| Event via voice | 1 event + voice cost |
+| Dispatch | 1 dispatch |
+| Mission created | 1 mission |
+| Location update offline | 1 SMS unit |
+
+When the plan limit is reached, additional usage is billed at the overage rate defined in `channel_costs`. Tenants with no plan are notified and must upgrade or add credit to continue.
+
+---
+
+## List Invoices
+Returns Stripe invoices for the authenticated tenant.
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "in_xxx",
+      "number": "WEDE-0001",
+      "amount_due": 5000000,
+      "currency": "eur",
+      "status": "paid",
+      "created": 1716800000,
+      "invoice_pdf": "https://...",
+      "hosted_invoice_url": "https://..."
+    }
+  ],
+  "count": 1
+}
+```
+
+`amount_due` is in the smallest currency unit (cents for EUR). Divide by 100 for the display amount.

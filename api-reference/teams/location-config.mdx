@@ -1,0 +1,44 @@
+---
+title: Location Config
+description: Configure GPS tracking intervals for online and offline modes
+---
+
+## Get Location Config
+Returns the location tracking intervals configured for the authenticated tenant.
+
+### Response
+
+```json
+{
+  "online_interval_sec": 60,
+  "offline_interval_sec": 300
+}
+```
+
+---
+
+## Update Location Config
+Requires `company_admin` or `company_tech` role.
+
+### Request Body
+
+```json
+{
+  "online_interval_sec": 60,
+  "offline_interval_sec": 300
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `online_interval_sec` | integer | GPS update interval when device has internet — minimum 30s |
+| `offline_interval_sec` | integer | GPS update interval when device is offline via SMS — minimum 60s |
+
+## How it works
+
+The SDK reads this configuration on login and applies it to the background location tracker.
+
+- **Online mode** — GPS sent via REST API at `online_interval_sec` intervals
+- **Offline mode** — GPS encoded in SMS payload at `offline_interval_sec` intervals, queued and sent when connectivity returns
+
+Offline location updates are recorded as billable operations and debited from the tenant plan.

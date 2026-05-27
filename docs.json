@@ -31,7 +31,10 @@
               "concepts/connectivity",
               "concepts/verticals",
               "concepts/security",
-              "concepts/parsers"
+              "concepts/parsers",
+              "concepts/score-engine",
+              "concepts/geofencing",
+              "concepts/metering"
             ]
           }
         ]
@@ -48,6 +51,7 @@
           {
             "group": "Authentication",
             "pages": [
+              "api-reference/auth/login",
               "api-reference/auth/token"
             ]
           },
@@ -59,19 +63,40 @@
             ]
           },
           {
-            "group": "Sync",
+            "group": "Teams & Dispatch",
             "pages": [
-              "api-reference/sync/batch",
-              "api-reference/sync/status"
+              "api-reference/teams/list",
+              "api-reference/teams/dispatch",
+              "api-reference/teams/score",
+              "api-reference/teams/members",
+              "api-reference/teams/equipment",
+              "api-reference/teams/location-config"
+            ]
+          },
+          {
+            "group": "Missions",
+            "pages": [
+              "api-reference/missions"
             ]
           },
           {
             "group": "Zones",
             "pages": [
               "api-reference/zones/list",
-              "api-reference/zones/create",
-              "api-reference/zones/update",
-              "api-reference/zones/delete"
+              "api-reference/zones/detail"
+            ]
+          },
+          {
+            "group": "Billing",
+            "pages": [
+              "api-reference/billing"
+            ]
+          },
+          {
+            "group": "Tenant",
+            "pages": [
+              "api-reference/tenant/me",
+              "api-reference/tenant/usage"
             ]
           },
           {
@@ -83,10 +108,10 @@
             ]
           },
           {
-            "group": "Tenant",
+            "group": "Sync",
             "pages": [
-              "api-reference/tenant/me",
-              "api-reference/tenant/usage"
+              "api-reference/sync/batch",
+              "api-reference/sync/status"
             ]
           },
           {
@@ -100,15 +125,7 @@
             "group": "Parsers",
             "pages": [
               "api-reference/parsers/list",
-              "api-reference/parsers/create",
-              "api-reference/parsers/update"
-            ]
-          },
-          {
-            "group": "Teams & Dispatch",
-            "pages": [
-              "api-reference/teams/list",
-              "api-reference/teams/dispatch"
+              "api-reference/parsers/create"
             ]
           },
           {
