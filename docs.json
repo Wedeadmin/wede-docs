@@ -139,6 +139,17 @@
         ]
       },
       {
+        "tab": "Security",
+        "groups": [
+          {
+            "group": "Security Overview",
+            "pages": [
+              "concepts/security"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "SDKs",
         "groups": [
           {
