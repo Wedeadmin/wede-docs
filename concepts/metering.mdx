@@ -12,13 +12,13 @@ Every operation on the wede platform is metered and debited from the tenant's an
 | Operation | Trigger | Channel cost |
 |-----------|---------|--------------|
 | Event via internet | `POST /v1/events` with internet channel | No extra cost |
-| Event via SMS | `POST /v1/events` with SMS channel | Yes - per SMS |
+| Event via structured protocol | `POST /v1/events` with structured channel | Yes - per unit |
 | Event via voice | `POST /v1/events` with voice channel | Yes - per voice minute |
 | Event via LoRa | `POST /v1/events` with LoRa channel | Yes - per transmission |
 | Event via satellite | `POST /v1/events` with satellite channel | Yes - per packet |
 | Dispatch | `POST /v1/teams/dispatch` | No extra cost |
 | Mission created | `POST /v1/missions` | No extra cost |
-| Location update offline | `PATCH /v1/teams/:id/members/:memberId/location` with `X-Wede-Channel: sms` | Yes - per SMS |
+| Location update offline | `PATCH /v1/teams/:id/members/:memberId/location` with structured channel | Yes - per unit |
 
 Internet-based operations (events, dispatch, missions, location updates via IP) count against the plan's `max_events_per_year` limit. Off-channel operations (structured protocols, voice, LoRa, satellite) also incur the per-unit channel cost defined in `country_channel_costs`.
 
