@@ -1,28 +1,112 @@
 ---
-title: Tenant Profile
-description: Get your tenant configuration
+title: "Tenant Profile"
+description: "Get your tenant configuration"
 ---
 
-## Endpoint
-## Example
+## GET /v1/tenant/me
+
+Returns the full configuration for the authenticated tenant.
+
+Requires authentication (JWT or API key).
+
+### Example
 
 ```bash
 curl https://api.wede.pt/v1/tenant/me \
   -H "x-wede-api-key: wede_live_YOUR_KEY"
 ```
 
-## Response
+### Response
 
 ```json
 {
-  "id": "9eb65ffa-...",
-  "name": "My Company",
-  "slug": "my-company",
+  "id": "9c145f7e-83be-4039-8e9c-650796acd3ee",
+  "name": "Hospital Lisboa",
+  "slug": "hospital-lisboa",
+  "email": "admin@hospital-lisboa.pt",
   "license_type": "saas_api",
   "status": "active",
+  "country": "PT",
+  "verticals": ["healthcare", "emergency"],
+  "dispatch_threshold": 0.20,
+  "reinforcement_timeout_min": 10,
   "feature_flags": {
-    "emergency_dispatch": true,
-    "sms_fallback": true
-  }
+    "dispatch_mode": true
+  },
+  "sla_target_uptime_pct": 99.9,
+  "created_at": "2026-01-15T10:00:00Z",
+  "updated_at": "2026-06-09T18:00:00Z"
 }
+```
+
+### Response Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Tenant UUID |
+| `name` | string | Organisation name |
+| `slug` | string | URL-safe identifier |
+| `country` | string | ISO 3166-1 alpha-2 country code |
+| `verticals` | string\[\] | Active operational verticals |
+| `dispatch_threshold` | number | Minimum score for auto-dispatch (0–1) |
+| `reinforcement_timeout_min` | integer | Minutes before auto-reinforcement (0 = disabled) |
+| `feature_flags.dispatch_mode` | boolean | Auto-dispatch enabled |
+| `status` | string | `active`, `suspended`, `inactive` |
+
+---
+
+## PATCH /v1/tenant/dispatch-settings
+
+Configure auto-dispatch behaviour for the tenant.
+
+Requires `company_admin` or `company_tech` role.
+
+### Request Body
+
+```json
+{
+  "dispatch_mode": true,
+  "dispatch_threshold": 0.20,
+  "reinforcement_timeout_min": 10
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `dispatch_mode` | boolean | Enable or disable auto-dispatch |
+| `dispatch_threshold` | number (0–1) | Minimum score for auto-dispatch |
+| `reinforcement_timeout_min` | integer | Minutes before backup auto-dispatch if team doesn't ACK (0 = disabled) |
+
+### Threshold Reference
+
+| Level | Value | Behaviour |
+| --- | --- | --- |
+| Low | `0.10` | Dispatch any available team |
+| Medium | `0.20` | Team must be well positioned |
+| High | `0.40` | Only the best-matched team |
+
+### Response
+
+```json
+{
+  "dispatch_mode": true,
+  "dispatch_threshold": 0.20,
+  "reinforcement_timeout_min": 10
+}
+```
+
+### SDK
+
+```typescript
+// Get tenant info
+const tenant = await client.getTenantInfo()
+console.log(tenant.data.verticals)         // ['healthcare', 'emergency']
+console.log(tenant.data.dispatch_threshold) // 0.20
+
+// Update dispatch settings
+await client.updateDispatchSettings({
+  dispatch_mode: true,
+  dispatch_threshold: 0.20,
+  reinforcement_timeout_min: 10
+})
 ```

@@ -1,11 +1,23 @@
 ---
-title: SDKs
-description: Official Wede SDKs and client libraries
+title: "SDKs"
+description: "Official Wede SDKs and client libraries"
 ---
 
-## JavaScript / TypeScript SDK
+## Overview
 
-**Repository:** https://github.com/Wedeadmin/wede-sdk
+Wede provides five official SDKs covering all major platforms. Every SDK includes the full offline-first stack: local score engine, team cache, and persistent dispatch queue.
+
+| SDK | Repository | Language |
+| --- | --- | --- |
+| JavaScript / TypeScript | [Wedeadmin/wede-sdk-js](https://github.com/Wedeadmin/wede-sdk-js) | TypeScript |
+| React Native | [Wedeadmin/wede-sdk-react-native](https://github.com/Wedeadmin/wede-sdk-react-native) | TypeScript |
+| Android | [Wedeadmin/wede-sdk-android](https://github.com/Wedeadmin/wede-sdk-android) | Kotlin |
+| iOS / macOS | [Wedeadmin/wede-sdk-swift](https://github.com/Wedeadmin/wede-sdk-swift) | Swift |
+| Python | [Wedeadmin/wede-sdk-python](https://github.com/Wedeadmin/wede-sdk-python) | Python |
+
+---
+
+## JavaScript / TypeScript
 
 ### Installation
 
@@ -20,55 +32,52 @@ import { WedeClient } from '@wede/sdk'
 
 const client = new WedeClient({ apiKey: 'wede_live_YOUR_KEY' })
 
-await client.sendEvent({
+// Send an event
+const event = await client.sendEvent({
   type: 'EMERGENCY',
-  priority: 'critical',
+  priority: 'high',
   vertical: 'healthcare',
-  idempotency_key: 'evt-001',
-  payload: { patient_id: 'PT123' }
+  idempotency_key: crypto.randomUUID(),
+  payload: { condition: 'cardiac_arrest' },
+  location: { lat: 38.7169, lng: -9.1395 }
 })
 
-const zones = await client.listZones()
-const parser = await client.getActiveParser('healthcare')
+// Score and dispatch teams
+const scored = await client.scoreTeams({
+  lat: 38.7169, lng: -9.1395,
+  vertical: 'healthcare', priority: 'high'
+})
+
+await client.dispatch({
+  event_id: event.data.event_id,
+  team_id: scored.data[0].team_id,
+  event_lat: 38.7169, event_lng: -9.1395
+})
+```
+
+### Offline Operation
+
+```typescript
+import { WedeClient, WedeCache, WedeOfflineDispatch, WedeDeviceId } from '@wede/sdk'
+
+// Generate permanent device ID on first install
+const deviceId = await WedeDeviceId.getOrCreate(storage)
+await client.registerDevice(deviceId, 'web', '2.0.0')
+
+// Offline dispatch — uses local score engine, queues if no connectivity
+const result = await offline.dispatch('cardiac_arrest', {
+  lat: 38.7169, lng: -9.1395,
+  vertical: 'healthcare'
+})
+// result.queued === true when offline
+
+// Sync when connectivity restored
+await client.syncDeviceQueue(deviceId)
 ```
 
 ---
 
-## Python SDK
-
-**Repository:** https://github.com/Wedeadmin/wede-sdk-python
-
-### Installation
-
-```bash
-pip install wede-sdk
-```
-
-### Quick Start
-
-```python
-from wede import WedeClient, WedeEvent
-
-client = WedeClient(api_key="wede_live_YOUR_KEY")
-
-event = WedeEvent(
-    type="EMERGENCY",
-    idempotency_key="evt-001",
-    vertical="healthcare",
-    priority="critical",
-    payload={"patient_id": "PT123"}
-)
-result = client.send_event(event)
-zones = client.list_zones()
-```
-
----
-
-## React Native SDK
-
-**Repository:** https://github.com/Wedeadmin/wede-sdk-react-native
-
-Includes a built-in offline queue backed by AsyncStorage. Events captured offline are synced automatically when connectivity is restored.
+## React Native
 
 ### Installation
 
@@ -80,47 +89,85 @@ npm install @react-native-async-storage/async-storage
 ### Quick Start
 
 ```typescript
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import { WedeClient } from "@wede/react-native-sdk"
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { WedeClient } from '@wede/react-native-sdk'
 
 const client = new WedeClient({
-  apiKey: "wede_live_YOUR_KEY",
+  apiKey: 'wede_live_YOUR_KEY',
   storage: AsyncStorage,
 })
 
-const result = await client.sendEventOrQueue({
-  type: "EMERGENCY",
-  idempotency_key: "evt-001",
-  vertical: "healthcare",
-  priority: "critical",
-  payload: { patient_id: "PT123" },
+// Works online and offline
+const result = await client.dispatch({
+  event_id: 'uuid', team_id: 'uuid',
+  event_lat: 38.7169, event_lng: -9.1395
 })
 
-if (result.queued) {
-  console.log("Offline — event queued locally")
-}
-
-// Flush when connectivity restored
-const { flushed } = await client.flushQueue()
+// Request backup for active mission
+await client.requestBackup({
+  mission_id: 'uuid', event_id: 'uuid',
+  event_lat: 38.7169, event_lng: -9.1395
+})
 ```
 
 ---
 
-## Swift SDK (iOS / macOS)
-
-**Repository:** https://github.com/Wedeadmin/wede-sdk-swift
-
-Supports iOS 15+ and macOS 12+. Built with Swift concurrency (async/await).
+## Android (Kotlin)
 
 ### Installation
 
-Add to your `Package.swift`:
+Add to `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation("pt.wede.sdk:wede-sdk-android:1.2.0")
+}
+```
+
+### Quick Start
+
+```kotlin
+import pt.wede.sdk.core.WedeClient
+import pt.wede.sdk.sync.WedeDeviceId
+
+val client = WedeClient(
+    apiKey = "wede_live_YOUR_KEY",
+    storage = SharedPreferencesStorage(context)
+)
+
+// Generate permanent device ID
+val deviceId = WedeDeviceId.getOrCreate(storage)
+client.registerDevice(deviceId, "android", "2.0.0")
+
+// Dispatch (online or offline)
+client.dispatch(eventId = "uuid", teamId = "uuid",
+    eventLat = 38.7169, eventLng = -9.1395)
+
+// Request backup
+client.requestBackup(
+    missionId = "uuid", eventId = "uuid",
+    eventLat = 38.7169, eventLng = -9.1395
+)
+
+// Sync when back online
+client.syncDeviceQueue(deviceId)
+```
+
+---
+
+## iOS / macOS (Swift)
+
+### Installation
+
+Add to `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Wedeadmin/wede-sdk-swift.git", from: "0.1.0")
+    .package(url: "https://github.com/Wedeadmin/wede-sdk-swift.git", from: "1.2.0")
 ]
 ```
+
+Supports iOS 15\+ and macOS 12\+.
 
 ### Quick Start
 
@@ -129,48 +176,104 @@ import WedeSDK
 
 let client = WedeClient(apiKey: "wede_live_YOUR_KEY")
 
-let event = WedeEvent(
-    type: "EMERGENCY",
-    idempotencyKey: "evt-001",
-    payload: ["patient_id": AnyCodable("PT123")],
-    vertical: "healthcare",
-    priority: "critical"
-)
+// Register device
+let deviceId = WedeDeviceId.getOrCreate()
+try await client.registerDevice(deviceId: deviceId, platform: "ios", appVersion: "2.0.0")
 
-let result = try await client.sendEvent(event)
-let zones = try await client.listZones()
-let parser = try await client.getActiveParser(vertical: "healthcare")
+// Score teams
+let scored = try await client.scoreTeams(lat: 38.7169, lng: -9.1395,
+    vertical: "healthcare", priority: "high")
+
+// Dispatch
+try await client.dispatch(eventId: "uuid", teamId: scored.data[0].teamId,
+    eventLat: 38.7169, eventLng: -9.1395)
+
+// Request backup
+try await client.requestBackup(missionId: "uuid", eventId: "uuid",
+    eventLat: 38.7169, eventLng: -9.1395)
+
+// Sync
+try await client.syncDeviceQueue(deviceId: deviceId)
 ```
 
 ---
 
-## Available Methods — All SDKs
+## Python
 
-| Method | JS/TS | Python | React Native | Swift |
-|--------|-------|--------|--------------|-------|
-| Send event | `sendEvent` | `send_event` | `sendEvent` / `sendEventOrQueue` | `sendEvent` |
-| List events | `listEvents` | `list_events` | `listEvents` | `listEvents` |
-| List zones | `listZones` | `list_zones` | `listZones` | `listZones` |
-| Sync batch | `syncBatch` | `sync_batch` | `syncBatch` / `flushQueue` | `syncBatch` |
-| Get active parser | `getActiveParser` | `get_active_parser` | `getActiveParser` | `getActiveParser` |
-| List parsers | `listParsers` | `list_parsers` | `listParsers` | `listParsers` |
-| Webhooks | `listWebhooks` / `createWebhook` | `list_webhooks` / `create_webhook` | `listWebhooks` / `createWebhook` | — |
-| Tenant info | `getTenantInfo` | `get_tenant_info` | `getTenantInfo` | `getTenantInfo` |
-| Usage stats | `getUsage` | `get_usage` | `getUsage` | `getUsage` |
-| **Teams** | | | | |
-| List teams | `listTeams` | `list_teams` | `listTeams` | `listTeams` |
-| Get team | `getTeam` | `get_team` | `getTeam` | `getTeam` |
-| Update location | `updateMemberLocation` | `update_member_location` | `updateMemberLocation` | `updateMemberLocation` |
-| **Dispatch** | | | | |
-| Score teams | `scoreTeams` | `score_teams` | `scoreTeams` | `scoreTeams` |
-| Dispatch team | `dispatch` | `dispatch` | `dispatch` | `dispatch` |
-| **Missions** | | | | |
-| List missions | `listMissions` | `list_missions` | `listMissions` | `listMissions` |
-| Get mission | `getMission` | `get_mission` | `getMission` | `getMission` |
-| Update status | `updateMissionStatus` | `update_mission_status` | `updateMissionStatus` | `updateMissionStatus` |
-| **Billing** | | | | |
-| Get billing | `getBilling` | `get_billing` | `getBilling` | `getBilling` |
+### Installation
+
+```bash
+pip install wede-sdk
+```
+
+### Quick Start
+
+```python
+from wede import WedeClient
+
+client = WedeClient(api_key="wede_live_YOUR_KEY")
+
+# Send event
+result = client.send_event(
+    type="EMERGENCY", priority="high", vertical="healthcare",
+    idempotency_key="evt-001",
+    payload={"condition": "cardiac_arrest"},
+    location={"lat": 38.7169, "lng": -9.1395}
+)
+
+# Score and dispatch
+scored = client.score_teams(lat=38.7169, lng=-9.1395, vertical="healthcare")
+client.dispatch(event_id=result["event_id"], team_id=scored["data"][0]["team_id"])
+
+# Request backup
+client.request_backup(
+    mission_id="uuid", event_id="uuid",
+    event_lat=38.7169, event_lng=-9.1395
+)
+
+# Update dispatch settings
+client.update_dispatch_settings(
+    dispatch_mode=True,
+    dispatch_threshold=0.20,
+    reinforcement_timeout_min=10
+)
+```
+
+---
+
+## Method Reference — All SDKs
+
+| Method | JS/TS | Python | React Native | Swift | Android |
+| --- | --- | --- | --- | --- | --- |
+| **Events** |  |  |  |  |  |
+| Send event | `sendEvent` | `send_event` | `sendEvent` | `sendEvent` | `sendEvent` |
+| List events | `listEvents` | `list_events` | `listEvents` | `listEvents` | `listEvents` |
+| **Teams & Dispatch** |  |  |  |  |  |
+| List teams | `listTeams` | `list_teams` | `listTeams` | `listTeams` | `listTeams` |
+| Score teams | `scoreTeams` | `score_teams` | `scoreTeams` | `scoreTeams` | `scoreTeams` |
+| Dispatch | `dispatch` | `dispatch` | `dispatch` | `dispatch` | `dispatch` |
+| Request backup | `requestBackup` | `request_backup` | `requestBackup` | `requestBackup` | `requestBackup` |
+| Update dispatch settings | `updateDispatchSettings` | `update_dispatch_settings` | `updateDispatchSettings` | `updateDispatchSettings` | `updateDispatchSettings` |
+| **Missions** |  |  |  |  |  |
+| List missions | `listMissions` | `list_missions` | `listMissions` | `listMissions` | — |
+| Get mission | `getMission` | `get_mission` | `getMission` | `getMission` | — |
+| Update status | `updateMissionStatus` | `update_mission_status` | `updateMissionStatus` | `updateMissionStatus` | — |
+| **Offline / Devices** |  |  |  |  |  |
+| Register device | `registerDevice` | `register_device` | `registerDevice` | `registerDevice` | `registerDevice` |
+| Sync device queue | `syncDeviceQueue` | `sync_device_queue` | `syncDeviceQueue` | `syncDeviceQueue` | `syncDeviceQueue` |
+| Refresh cache | `refreshCache` | `refresh_cache` | `refreshCache` | `refreshCache` | `refreshCache` |
+| **Tenant** |  |  |  |  |  |
+| Get tenant info | `getTenantInfo` | `get_tenant_info` | `getTenantInfo` | `getTenantInfo` | — |
+| Get usage | `getUsage` | `get_usage` | `getUsage` | `getUsage` | — |
+| **Other** |  |  |  |  |  |
+| List zones | `listZones` | `list_zones` | `listZones` | `listZones` | — |
+| List parsers | `listParsers` | `list_parsers` | `listParsers` | `listParsers` | — |
+| Get billing | `getBilling` | `get_billing` | `getBilling` | `getBilling` | — |
+| List webhooks | `listWebhooks` | `list_webhooks` | `listWebhooks` | — | — |
+| Create webhook | `createWebhook` | `create_webhook` | `createWebhook` | — | — |
+
+---
 
 ## Support
 
-Email [geral@wede.pt](mailto:geral@wede.pt) or visit [docs.wede.pt](https://docs.wede.pt).
+Email [support@wede.pt](mailto:support@wede.pt) or visit [docs.wede.pt](https://docs.wede.pt).
