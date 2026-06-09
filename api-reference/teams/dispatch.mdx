@@ -1,45 +1,127 @@
 ---
-title: Dispatch Team
-description: Assign a team to an event
+title: "Dispatch Team"
+description: "Assign a team to an event"
 ---
 
-## Endpoint
-## Authentication
+## POST /v1/teams/dispatch
 
 Requires `dispatch:assign` permission.
 
-## Request Body
+Dispatching a team creates a mission, sets the team status to `on_mission`, fires the `team.dispatched` webhook, and records a billable operation.
+
+### Request Body
 
 | Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| event_id | string | Yes | ID of the event to assign |
-| team_id | string (UUID) | Yes | ID of the team to dispatch |
-| notes | string | No | Optional dispatch notes |
+| --- | --- | --- | --- |
+| `event_id` | string | Yes | ID of the event to assign |
+| `team_id` | string | Yes | ID of the team to dispatch |
+| `notes` | string | No | Optional dispatch notes visible to the team |
+| `event_lat` | number | No | Event latitude (improves route display) |
+| `event_lng` | number | No | Event longitude (improves route display) |
 
-## Example
+### Example
 
 ```bash
 curl -X POST https://api.wede.pt/v1/teams/dispatch \
-  -H "X-Wede-API-Key: wede_live_YOUR_KEY" \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "event_id": "evt-001",
-    "team_id": "00000000-0000-0000-0000-000000000001",
-    "notes": "Closest available unit"
+    "event_id": "fbea1e0d-8f6b-42f5-bf9b-58fe77430f53",
+    "team_id": "259edc6e-95f3-42ba-bac5-263cfe51ebc0",
+    "notes": "Patient is conscious, use south entrance",
+    "event_lat": 38.7169,
+    "event_lng": -9.1395
   }'
 ```
 
-## Response
+### Response
 
 ```json
 {
-  "id": "...",
-  "event_id": "evt-001",
-  "team_id": "...",
-  "dispatched_at": "2026-05-14T21:00:00Z"
+  "id": "7d154b16-c8ae-4da7-a949-5a97793c667e",
+  "tenant_id": "9c145f7e-83be-4039-8e9c-650796acd3ee",
+  "event_id": "fbea1e0d-8f6b-42f5-bf9b-58fe77430f53",
+  "team_id": "259edc6e-95f3-42ba-bac5-263cfe51ebc0",
+  "dispatched_by": "327739d2-79b6-4e10-8699-a1393e70dbb8",
+  "dispatched_at": "2026-06-09T18:42:45.823Z",
+  "notes": "Patient is conscious, use south entrance"
 }
 ```
 
 <Note>
-Dispatching a team automatically sets its status to `on_mission`.
+  Dispatching a team automatically sets its status to `on_mission` and creates a mission record. The mission is closed (and the team returned to `available`) when the mission status reaches `COMPLETED` or `FAILED`.
 </Note>
+
+---
+
+## Auto-Dispatch
+
+When auto-dispatch is enabled for a tenant, the system automatically dispatches the highest-scored available team when an event arrives — without manual intervention.
+
+### Configure Auto-Dispatch
+
+`PATCH /v1/tenant/dispatch-settings`
+
+```json
+{
+  "dispatch_mode": true,
+  "dispatch_threshold": 0.20,
+  "reinforcement_timeout_min": 10
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `dispatch_mode` | boolean | Enable or disable auto-dispatch |
+| `dispatch_threshold` | number (0–1) | Minimum score required for auto-dispatch |
+| `reinforcement_timeout_min` | integer | Minutes before auto-reinforcement (0 = disabled) |
+
+### Threshold Values
+
+| Threshold | Value | Behaviour |
+| --- | --- | --- |
+| Low | `0.10` | Dispatch any available team |
+| Medium | `0.20` | Team must be well positioned |
+| High | `0.40` | Only the best-matched team |
+
+When no team meets the threshold, the response includes `requires_manual: true` and the supervisor is alerted.
+
+### Auto-Reinforcement
+
+If a dispatched team does not acknowledge (`ACK`) a mission within `reinforcement_timeout_min` minutes, the system automatically dispatches the next best available team. Set to `0` to disable.
+
+---
+
+## Manual Override
+
+Supervisors can always override auto-dispatch and manually select any available team from the Dispatch Console, regardless of score.
+
+---
+
+## SDK
+
+```typescript
+// Direct dispatch
+await client.dispatch({
+  event_id: 'uuid',
+  team_id: 'uuid',
+  event_lat: 38.7169,
+  event_lng: -9.1395,
+  notes: 'Optional notes'
+})
+
+// Update dispatch settings
+await client.updateDispatchSettings({
+  dispatch_mode: true,
+  dispatch_threshold: 0.20,
+  reinforcement_timeout_min: 10
+})
+
+// Request backup for active mission
+await client.requestBackup({
+  mission_id: 'uuid',
+  event_id: 'uuid',
+  event_lat: 38.7169,
+  event_lng: -9.1395
+})
+```

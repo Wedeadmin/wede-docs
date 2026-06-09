@@ -1,10 +1,30 @@
 ---
-title: Missions
-description: Create and manage operational missions assigned to teams
+title: "Missions"
+description: "Create and manage operational missions assigned to teams"
+---
+
+## Overview
+
+A mission is created when a team is dispatched to an event. It tracks the full lifecycle of the field response — from dispatch to completion — and provides the feedback channel for field operators.
+
+Missions are the operational record of Wede. They are immutable once completed and form part of the audit trail.
+
 ---
 
 ## List Missions
+
+`GET /v1/missions`
+
 Requires `missions:view` permission.
+
+### Query Parameters
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `status` | string | Filter by status (see lifecycle below) |
+| `team_id` | string | Filter by team |
+| `member_id` | string | Filter by assigned member |
+| `limit` | integer | Max results (default 50) |
 
 ### Response
 
@@ -15,10 +35,22 @@ Requires `missions:view` permission.
       "id": "uuid",
       "event_id": "uuid",
       "team_id": "uuid",
-      "status": "IN_PROGRESS",
+      "status": "ON_ROUTE",
+      "channel_used": "internet",
+      "vertical": "healthcare",
+      "priority": "high",
+      "notes": "Patient is conscious, use south entrance",
+      "event_lat": 38.7169,
+      "event_lng": -9.1395,
+      "dispatched_at": "2026-06-09T18:00:00Z",
+      "ack_at": "2026-06-09T18:01:30Z",
+      "on_route_at": "2026-06-09T18:02:00Z",
+      "on_site_at": null,
+      "completed_at": null,
+      "failed_at": null,
       "feedback": null,
-      "created_at": "2026-05-27T10:00:00Z",
-      "updated_at": "2026-05-27T10:05:00Z"
+      "created_at": "2026-06-09T18:00:00Z",
+      "updated_at": "2026-06-09T18:02:00Z"
     }
   ],
   "count": 1
@@ -27,50 +59,100 @@ Requires `missions:view` permission.
 
 ---
 
-## Create Mission
-Requires `missions:manage` permission.
+## Get Mission
 
-### Request Body
+`GET /v1/missions/:id`
 
-```json
-{
-  "event_id": "uuid",
-  "team_id": "uuid",
-  "notes": "Patient is conscious, use south entrance"
-}
-```
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `event_id` | string | Yes | The event this mission responds to |
-| `team_id` | string | Yes | The team assigned to this mission |
-| `notes` | string | No | Operational notes visible to the team |
-
-Creating a mission fires the `mission.created` webhook and records a billable operation.
+Requires `missions:view` permission.
 
 ---
 
 ## Update Mission Status
-Requires `missions:manage` or `missions:receive` permission.
+
+`PATCH /v1/missions/:id/status`
+
+Requires `missions:manage` **or** `missions:receive` permission.
+
+Field operators use `missions:receive`. Supervisors and admins use `missions:manage`.
 
 ### Request Body
 
 ```json
 {
-  "status": "COMPLETED",
-  "feedback": "Patient stabilised and transported to Hospital de Santa Maria"
+  "status": "ON_SITE",
+  "feedback": {
+    "patient_condition": "stable",
+    "observations": "Patient responsive, BP 120/80"
+  }
 }
 ```
 
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `status` | string | Yes | Next status in lifecycle |
+| `feedback` | object | No | Opaque structured feedback (parser-defined) |
+
 ### Mission Lifecycle
-| Status | Description |
-|--------|-------------|
-| `CREATED` | Mission created, team notified |
-| `DISPATCHED` | Team acknowledged and is en route |
-| `IN_PROGRESS` | Team is on site |
-| `COMPLETED` | Mission concluded |
-| `CANCELLED` | Mission cancelled before completion |
 
-Feedback is opaque — the platform stores it but does not parse or validate its content. The team defines the feedback format via their parser configuration.
+Missions follow a strict forward-only progression:
 
-Status updates fire the `mission.status_updated` webhook.
+| Status | Description | Who sets it |
+| --- | --- | --- |
+| `CREATED` | Mission created, team notified | System (on dispatch) |
+| `SENT` | Notification delivered | System (delivery engine) |
+| `ACK` | Team acknowledged the mission | Field operator |
+| `ON_ROUTE` | Team is travelling to location | Field operator |
+| `ON_SITE` | Team has arrived | Field operator |
+| `COMPLETED` | Mission closed successfully | Field operator or supervisor |
+| `FAILED` | Mission could not be completed | Field operator or supervisor |
+
+When a mission reaches `COMPLETED` or `FAILED`:
+
+- The assigned team is automatically returned to `available` status
+- The originating event is closed
+
+### Webhooks
+
+Status updates fire the `mission.status_updated` webhook:
+
+```json
+{
+  "event": "mission.status_updated",
+  "payload": {
+    "mission_id": "uuid",
+    "status": "ON_SITE",
+    "feedback": {}
+  }
+}
+```
+
+---
+
+## Backup Dispatch
+
+To dispatch a second team to an active mission (reinforcement), use the standard dispatch endpoint with the same `event_id`:
+
+`POST /v1/teams/dispatch`
+
+```json
+{
+  "event_id": "uuid-of-original-event",
+  "team_id": "uuid-of-backup-team",
+  "notes": "Backup team — reinforcement requested by field operator",
+  "event_lat": 38.7169,
+  "event_lng": -9.1395
+}
+```
+
+This creates a new mission for the backup team while the original mission continues. Both missions are tracked independently.
+
+### SDK Method
+
+```typescript
+await client.requestBackup({
+  mission_id: currentMission.id,
+  event_id: currentMission.event_id,
+  event_lat: currentLocation.lat,
+  event_lng: currentLocation.lng
+})
+```

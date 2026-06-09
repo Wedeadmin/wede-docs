@@ -1,75 +1,199 @@
 ---
-title: Offline-First Architecture
-description: How Wede ensures operational continuity without internet
+title: "Offline-First Architecture"
+description: "How Wede ensures operational continuity without internet"
 ---
 
 ## What Offline-First Means
 
 Most platforms assume internet connectivity. They are built for the best case. When connectivity fails, they fail too.
 
-Wede is built for the worst case. Every feature, every integration, every delivery guarantee is designed to work without internet - and to work better when internet is available.
+Wede is built for the worst case. Every feature, every integration, every delivery guarantee is designed to work without internet — and to work better when internet is available.
 
 This is what offline-first means: not a fallback mode, but the default architecture.
 
+---
+
 ## Delivery Channels
 
-Wede maintains multiple delivery channels for every operational zone. When the primary channel degrades, the next channel activates automatically - transparently, without any changes to your integration.
+Wede maintains multiple delivery channels for every operational zone. When the primary channel degrades, the next channel activates automatically — transparently, without any changes to your integration.
 
 | Channel | Description | Best For |
-|---------|-------------|----------|
-| **REST Full** | Standard HTTPS - primary channel | Normal operations |
+| --- | --- | --- |
+| **REST Full** | Standard HTTPS — primary channel | Normal operations |
 | **REST Compressed** | Optimised low-bandwidth HTTPS | Degraded internet |
-| **Structured Protocols** | Compact structured transmission | When internet is unavailable |
+| **Structured Protocols** | Compact structured transmission via SMS | When internet is unavailable |
 | **Voice** | Voice call delivery | Critical alerts, no data |
-| **LoRa** | Long-range IoT radio | Remote areas, IoT devices |
-| **Satellite** | Global satellite coverage | Extreme environments, no cellular |
-| **Edge** | Local edge processing | Zero external dependency |
+
+<Note>
+  LoRa, satellite, and edge processing are on the roadmap. Current production channels are REST Full, REST Compressed, Structured Protocols (SMS), and Voice.
+</Note>
 
 Channel selection is automatic and transparent. Your API call stays the same regardless of which channel delivers the event.
+
+---
 
 ## Connectivity States
 
 Each zone has an independent connectivity state, monitored in real-time:
 
 | State | Meaning | Channels Active |
-|-------|---------|-----------------|
+| --- | --- | --- |
 | **online** | Full connectivity | REST Full, REST Compressed |
 | **degraded** | Reduced connectivity | REST Compressed, Structured Protocols |
-| **sms_only** | Internet unavailable | Structured Protocols, Voice |
-| **offline** | All external channels unavailable | LoRa, Satellite, Edge |
+| **sms\_only** | Internet unavailable | Structured Protocols, Voice |
+| **offline** | All external channels unavailable | Queue mode (sync on reconnect) |
 
 Zone states are visible in real-time in your [dashboard](https://app.wede.pt/dashboard/zones) and via the API.
 
-## Idempotency
+---
 
-Every event sent to Wede requires an `idempotency_key`. This guarantees that even if the same event is sent multiple times - due to network retries or reconnection - it is processed exactly once.
+## Device Registration and Offline Queue
+
+Wede provides a device-level offline guarantee through the Device Sync API. When a device registers, it receives a permanent `device_id` that survives app reinstalls and cache clears.
+
+### Register a Device
+
+`POST /v1/devices/register`
 
 ```json
 {
-  "type": "EMERGENCY_DISPATCH",
-  "priority": "critical",
-  "vertical": "healthcare",
-  "idempotency_key": "dispatch-2026-05-19-amb07-001"
+  "device_id": "generated-on-install-uuid",
+  "platform": "android",
+  "app_version": "2.1.0"
 }
 ```
 
-Choose idempotency keys that are unique per logical event - not per API call.
+### Offline Dispatch Queue
 
-## Synchronisation
+When a device is offline, dispatches are queued locally with monotonic sequence numbers. Each entry is immutable — it is never deleted until the server confirms receipt.
 
-When connectivity is restored after an offline period, events queued during the outage are synchronised automatically. Order is preserved. Conflicts are resolved without data loss.
+```typescript
+// SDK — offline dispatch (works without internet)
+const result = await offline.dispatch('cardiac_arrest', {
+  lat: 38.7169,
+  lng: -9.1395,
+  vertical: 'healthcare',
+  priority: 'high'
+})
+// result.queued === true — stored locally, will sync automatically
+```
 
-Your system receives webhook notifications as each queued event is delivered - giving you full visibility of what happened during the outage.
+### Sync on Reconnection
+
+`POST /v1/devices/sync`
+
+When connectivity is restored, the SDK automatically syncs the queue:
+
+```json
+{
+  "device_id": "uuid",
+  "last_received_seq": 42,
+  "dispatches": [
+    {
+      "sequence_number": 43,
+      "action_id": "uuid",
+      "event_lat": 38.7169,
+      "event_lng": -9.1395,
+      "vertical": "healthcare",
+      "priority": "high",
+      "created_offline_at": "2026-06-09T17:00:00Z"
+    }
+  ]
+}
+```
+
+The server responds with:
+
+```json
+{
+  "accepted": [43],
+  "duplicates": [],
+  "failed": [],
+  "server_seq": 43,
+  "device_last_received_seq": 42,
+  "synced_at": "2026-06-09T18:00:00Z"
+}
+```
+
+**Idempotency** is enforced at the `(device_id, sequence_number)` level — retransmitting the same entry is safe and will be returned in `duplicates`, not processed twice.
+
+### Get Pending Queue
+
+`GET /v1/devices/:id/queue`
+
+Returns all unsynced entries for a device — useful for monitoring offline operations from the server side.
+
+---
+
+## SDK Offline Architecture
+
+All Wede SDKs include three offline components:
+
+| Component | Purpose |
+| --- | --- |
+| **ScoreEngine** | Ranks teams locally using cached data — no server call needed |
+| **WedeCache** | Local cache of teams and catalog (TTL 5 min) — feeds the score engine |
+| **WedeOfflineDispatch** | Queues dispatches offline with immutable sequence numbers |
+
+```typescript
+// JS/TS — full offline flow
+import { WedeClient, WedeCache, WedeOfflineDispatch } from '@wede/sdk'
+
+const cache = new WedeCache(storage)
+const offline = new WedeOfflineDispatch(storage, cache)
+
+// When offline: score locally, queue dispatch
+const result = await offline.dispatch('cardiac_arrest', {
+  lat: 38.7169, lng: -9.1395,
+  vertical: 'healthcare'
+})
+
+// When online: sync queue
+await client.syncDeviceQueue(deviceId)
+```
+
+The same architecture is available in all SDKs:
+
+| SDK | Offline Module |
+| --- | --- |
+| JavaScript / TypeScript | `WedeOfflineDispatch` |
+| React Native | `WedeOfflineDispatch` |
+| Android (Kotlin) | `WedeOfflineDispatch` |
+| iOS (Swift) | `WedeOfflineDispatch` |
+| Python | `WedeOfflineDispatch` |
+
+---
+
+## Idempotency
+
+Every event sent to Wede requires an `idempotency_key`. This guarantees that even if the same event is sent multiple times — due to network retries or reconnection — it is processed exactly once.
+
+```json
+{
+  "type": "EMERGENCY",
+  "priority": "critical",
+  "vertical": "healthcare",
+  "idempotency_key": "dispatch-2026-06-09-amb07-001"
+}
+```
+
+Choose idempotency keys that are unique per logical event — not per API call.
+
+---
 
 ## Security
 
 All communication is encrypted in transit over HTTPS. Events are authenticated using your API key or JWT token. All operations are logged in an immutable audit trail.
 
+Offline queues are stored locally on the device. They do not contain sensitive payload data — only operational metadata (action type, coordinates, vertical, priority).
+
+---
+
 ## Compliance
 
 Wede is designed for regulated industries:
 
-- **Data residency** - configurable per zone and per country
-- **Audit trail** - every operation logged with user, timestamp and IP
-- **Role-based access** - granular permissions per user role
-- **GDPR** - data processed within EU infrastructure (GCP europe-west1)
+- **Data residency** — all data processed within EU infrastructure (GCP europe-west1)
+- **Audit trail** — every operation logged with user, timestamp and IP
+- **Role-based access** — granular permissions per user role
+- **RGPD** — data processed within EU infrastructure

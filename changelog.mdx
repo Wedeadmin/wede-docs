@@ -1,6 +1,46 @@
 ---
-title: Changelog
-description: API and SDK version history
+title: "Changelog"
+description: "API and SDK version history"
+---
+
+## v1.2.0 - 9 June 2026
+
+### New - Offline-First Device Sync (Passo 6)
+
+- `POST /v1/devices/register` — register a device for offline-first operation with permanent device ID
+- `POST /v1/devices/sync` — sync offline dispatch queue; idempotent at `(device_id, sequence_number)` level
+- `GET /v1/devices/:id/queue` — get pending (unsynced) queue for a device
+- Offline queue: immutable until server confirms, monotonic sequence numbers, survives app restarts
+
+### New - Dispatch Settings
+
+- `PATCH /v1/tenant/dispatch-settings` — configure auto-dispatch, threshold, and reinforcement timeout
+  - `dispatch_mode` — enable/disable auto-dispatch
+  - `dispatch_threshold` — minimum score for auto-dispatch (0–1)
+  - `reinforcement_timeout_min` — minutes before backup auto-dispatch if team doesn't ACK (0 = disabled)
+
+### Updated - Missions
+
+- Mission status lifecycle corrected: `CREATED → SENT → ACK → ON_ROUTE → ON_SITE → COMPLETED | FAILED`
+- `COMPLETED` and `FAILED` now automatically close the originating event and return team to `available`
+- `missions:receive` permission allows field operators to update status (previously only `missions:manage`)
+- Backup dispatch: send a second team to an active mission using `POST /v1/teams/dispatch` with the same `event_id`
+
+### Updated - Dispatch
+
+- `event_lat` and `event_lng` now optional (undefined when GPS not available, previously NaN)
+- `requires_manual: true` returned when no team meets auto-dispatch threshold
+- Auto-reinforcement: scheduler job checks every minute for missions without ACK beyond timeout
+
+### SDKs - v1.2
+
+All five SDKs updated (JS, React Native, Android/Kotlin, Swift, Python):
+
+- `requestBackup(missionId, eventId, eventLat?, eventLng?)` — request backup team for active mission
+- `updateDispatchSettings(dispatchMode?, dispatchThreshold?, reinforcementTimeoutMin?)` — configure dispatch settings
+- Offline components: `ScoreEngine`, `WedeCache`, `WedeOfflineDispatch`, `WedeDeviceId` — full offline-first capability
+- New SDK: `Wedeadmin/wede-sdk-android` (Kotlin) — paridade com JS/RN/Swift/Python
+
 ---
 
 ## v1.1.0 - 27 May 2026
@@ -86,4 +126,4 @@ All four SDKs updated with Teams, Dispatch, Missions and Billing methods:
 - `@wede/sdk` (TypeScript/JavaScript)
 - `wede-sdk` (Python)
 - `@wede/react-native-sdk` (React Native) - with offline queue via AsyncStorage
-- `WedeSDK` (Swift) - iOS 15+ / macOS 12+
+- `WedeSDK` (Swift) - iOS 15\+ / macOS 12\+
