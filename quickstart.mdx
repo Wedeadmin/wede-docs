@@ -6,15 +6,15 @@ icon: "rocket"
 
 ## Before you start
 
-You need a Wede account and an API key. [Sign up at app.wede.pt](https://app.wede.pt/register) or contact [geral@wede.pt](mailto:geral@wede.pt) to get access.
+You need a Wede account and an API key. [Sign up at app.wede.pt](https://app.wede.pt/register) or contact [support@wede.pt](mailto:support@wede.pt) to get access.
 
 Your API key looks like this: `wede_live_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`
 
 ---
 
-## Step 1 - Send your first event
+## Step 1 — Send your first event
 
-Choose the example that matches your industry:
+Events represent operational incidents requiring a team response. Choose your industry:
 
 <Tabs>
   <Tab title="Healthcare">
@@ -23,16 +23,12 @@ Choose the example that matches your industry:
       -H "x-wede-api-key: wede_live_YOUR_KEY" \
       -H "Content-Type: application/json" \
       -d '{
-        "type": "EMERGENCY_DISPATCH",
-        "priority": "critical",
+        "type": "EMERGENCY",
+        "priority": "high",
         "vertical": "healthcare",
         "idempotency_key": "hc-evt-001",
-        "payload": {
-          "unit": "AMB-PT-07",
-          "patient_id": "PT-001",
-          "location": "Hospital Santa Maria, Lisboa",
-          "condition": "cardiac_arrest"
-        }
+        "payload": { "condition": "cardiac_arrest" },
+        "location": { "lat": 38.7169, "lng": -9.1395 }
       }'
     ```
   </Tab>
@@ -42,16 +38,12 @@ Choose the example that matches your industry:
       -H "x-wede-api-key: wede_live_YOUR_KEY" \
       -H "Content-Type: application/json" \
       -d '{
-        "type": "FRAUD_ALERT",
+        "type": "DISPATCH",
         "priority": "high",
         "vertical": "banking",
         "idempotency_key": "bk-evt-001",
-        "payload": {
-          "terminal_id": "ATM-NG-042",
-          "account_ref": "****4521",
-          "amount": 150000,
-          "currency": "NGN"
-        }
+        "payload": { "terminal_id": "ATM-042", "issue": "offline" },
+        "location": { "lat": 25.2048, "lng": 55.2708 }
       }'
     ```
   </Tab>
@@ -61,16 +53,12 @@ Choose the example that matches your industry:
       -H "x-wede-api-key: wede_live_YOUR_KEY" \
       -H "Content-Type: application/json" \
       -d '{
-        "type": "DELIVERY_STATUS",
+        "type": "STATUS_UPDATE",
         "priority": "normal",
-        "vertical": "delivery",
+        "vertical": "logistics",
         "idempotency_key": "lg-evt-001",
-        "payload": {
-          "driver_id": "DRV-KE-019",
-          "order_id": "ORD-29841",
-          "status": "arrived",
-          "location": "Westlands, Nairobi"
-        }
+        "payload": { "driver_id": "DRV-019", "status": "incident" },
+        "location": { "lat": -1.2921, "lng": 36.8219 }
       }'
     ```
   </Tab>
@@ -80,65 +68,70 @@ Choose the example that matches your industry:
       -H "x-wede-api-key: wede_live_YOUR_KEY" \
       -H "Content-Type: application/json" \
       -d '{
-        "type": "NETWORK_ALERT",
+        "type": "EMERGENCY",
         "priority": "high",
         "vertical": "telecom",
         "idempotency_key": "tc-evt-001",
-        "payload": {
-          "site_id": "BTS-AE-112",
-          "alert_type": "power_failure",
-          "region": "Dubai — Al Barsha"
-        }
-      }'
-    ```
-  </Tab>
-  <Tab title="Government">
-    ```bash
-    curl -X POST https://api.wede.pt/v1/events \
-      -H "x-wede-api-key: wede_live_YOUR_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "type": "CIVIL_ALERT",
-        "priority": "critical",
-        "vertical": "gov",
-        "idempotency_key": "gv-evt-001",
-        "payload": {
-          "zone": "zona_norte_maputo",
-          "alert_type": "evacuation",
-          "population_affected": 12400
-        }
+        "payload": { "site_id": "BTS-AE-112", "alert": "power_failure" },
+        "location": { "lat": 25.1972, "lng": 55.2744 }
       }'
     ```
   </Tab>
 </Tabs>
 
-You will receive a response confirming the event was accepted:
+Response:
 
 ```json
 {
-  "event_id": "0ee3dfbe-1234-abcd-5678-ef90ab12cd34",
+  "event_id": "fbea1e0d-8f6b-42f5-bf9b-58fe77430f53",
   "status": "pending",
   "channel_selected": "rest_full",
-  "created_at": "2026-05-19T10:00:00Z"
+  "estimated_delivery_ms": 250
 }
 ```
 
+The event is now `pending` — awaiting dispatch to a team.
+
 ---
 
-## Step 2 - Check your zone connectivity
+## Step 2 — Score and dispatch a team
 
-Wede monitors connectivity per operational zone. Check the current state:
+Score available teams by proximity and capability, then dispatch the best match:
 
 ```bash
-curl https://api.wede.pt/v1/tenant/zones \
-  -H "x-wede-api-key: wede_live_YOUR_KEY"
+# Score teams for the event location
+curl -X POST https://api.wede.pt/v1/teams/dispatch/score \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lat": 38.7169,
+    "lng": -9.1395,
+    "vertical": "healthcare",
+    "priority": "high"
+  }'
 ```
+
+```bash
+# Dispatch the top-scored team
+curl -X POST https://api.wede.pt/v1/teams/dispatch \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_id": "fbea1e0d-8f6b-42f5-bf9b-58fe77430f53",
+    "team_id": "259edc6e-95f3-42ba-bac5-263cfe51ebc0",
+    "event_lat": 38.7169,
+    "event_lng": -9.1395,
+    "notes": "Patient is conscious, use south entrance"
+  }'
+```
+
+This creates a mission and notifies the team. The team then updates their status as they progress: `ACK → ON_ROUTE → ON_SITE → COMPLETED`.
 
 ---
 
-## Step 3 - Set up a webhook
+## Step 3 — Set up a webhook
 
-Receive real-time delivery confirmations in your system:
+Receive real-time notifications when missions progress:
 
 ```bash
 curl -X POST https://api.wede.pt/v1/webhooks \
@@ -146,42 +139,60 @@ curl -X POST https://api.wede.pt/v1/webhooks \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://your-system.com/wede-webhook",
-    "events": ["event.delivered", "event.failed", "zone.state_changed"]
+    "events": ["team.dispatched", "mission.status_updated"]
   }'
 ```
 
 ---
 
-## What happens next
+## Step 4 — Enable auto-dispatch (optional)
 
-When you send an event, Wede:
+Let Wede automatically dispatch the best team when an event arrives:
 
-1. Accepts the event and assigns a unique ID
-2. Checks connectivity state for the relevant zone
-3. Routes delivery through the best available channel
-4. If the primary channel fails, falls back automatically
-5. Confirms delivery and notifies your webhook
+```bash
+curl -X PATCH https://api.wede.pt/v1/tenant/dispatch-settings \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dispatch_mode": true,
+    "dispatch_threshold": 0.20,
+    "reinforcement_timeout_min": 10
+  }'
+```
 
-Your integration does not change - Wede handles routing transparently.
+With auto-dispatch enabled, the flow is fully automatic: event arrives → best team scored → dispatched → mission created.
+
+---
+
+## What happens when connectivity fails
+
+Wede is offline-first. When internet is unavailable:
+
+1. The SDK queues the dispatch locally with a sequence number
+2. The local score engine selects the best team from cached data
+3. When connectivity is restored, the queue syncs automatically
+4. The server processes queued dispatches in order, idempotently
+
+Your integration does not change — Wede handles routing transparently.
 
 ---
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Authentication" icon="key" href="/authentication">
-    API keys, JWT tokens, and security best practices
-  </Card>
-
   <Card title="Offline-First Architecture" icon="signal-bars-slash" href="/concepts/offline-first">
-    How Wede keeps your operations running without internet
+    How Wede keeps operations running without internet
   </Card>
 
-  <Card title="API Reference" icon="code" href="/api-reference/introduction">
-    Full API documentation with examples
+  <Card title="SDKs" icon="code" href="/sdks/overview">
+    JS, React Native, Android, Swift, Python
+  </Card>
+
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Full endpoint documentation
   </Card>
 
   <Card title="Verticals" icon="buildings" href="/concepts/verticals">
-    Healthcare, banking, logistics, telecom, emergency and government
+    Healthcare, banking, logistics, telecom, emergency
   </Card>
 </CardGroup>

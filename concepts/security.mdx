@@ -1,6 +1,6 @@
 ---
-title: Security
-description: Technical security architecture, compliance alignment, and what Wede guarantees per vertical
+title: "Security"
+description: "Technical security architecture, compliance alignment, and what Wede guarantees per vertical"
 ---
 
 ## Architecture Overview
@@ -54,7 +54,7 @@ Login attempts are rate-limited at two levels:
 
 ## Transport Security
 
-All communication with the Wede API is encrypted over **TLS 1.2+**. Unencrypted HTTP is rejected at the infrastructure level - not redirected.
+All communication with the Wede API is encrypted over **TLS 1.2\+**. Unencrypted HTTP is rejected at the infrastructure level - not redirected.
 
 This applies to all delivery channels: REST, structured protocols, voice, LoRa, and satellite. Each channel has independent transport-level security appropriate to its protocol.
 
@@ -64,24 +64,32 @@ This applies to all delivery channels: REST, structured protocols, voice, LoRa, 
 
 Wede implements a **7-level cascading RBAC** model. No level can grant permissions it does not itself hold. Privilege escalation is mathematically impossible.
 
-| Level | Role | Scope |
-|-------|------|-------|
-| 1 | `wede_global_admin` | Full platform - infrastructure, billing, all tenants |
-| 2 | `wede_tech_ops` | Technical operations - no billing, no tenant config |
-| 3 | `country_admin` | Regional management - assigned countries only |
-| 4 | `company_admin` | Full tenant - teams, users, billing view |
-| 5 | `company_tech` | Technical - SDK, API keys, integrations |
-| 6 | `operational_supervisor` | Monitoring - dispatch, incidents, zones |
-| 7 | `field_operator` | Field - mission receipt and feedback only |
+| Level | Role | Scope | Can configure? |
+| --- | --- | --- | --- |
+| 1 | `wede_global_admin` | Full platform — infrastructure, billing, all tenants | Yes |
+| 2 | `wede_tech_ops` | Technical operations — no billing, no tenant config | Yes (technical) |
+| 3 | `country_admin` | Regional management — assigned countries only | Yes (regional) |
+| 4 | `company_admin` | Full tenant — teams, users, billing view, dispatch | Yes |
+| 5 | `company_tech` | Technical — SDK, API keys, integrations, teams, dispatch | Yes |
+| 6 | `operational_supervisor` | Dispatch console, missions, backup — **executes, does not configure** | No |
+| 7 | `field_operator` | Mission receipt, status updates, backup requests — **executes only** | No |
 
-Every API route enforces the minimum required permission. Attempting to access a route without the required permission returns `403 Forbidden` - the route does not exist from the caller's perspective.
+<Warning>
+  `operational_supervisor` and `field_operator` are execution roles — they dispatch teams, update mission status, and request backup. They cannot create or modify parsers, catalogs, teams, or tenant settings. Assign `company_tech` or `company_admin` for configuration access.
+</Warning>
+
+<Info>
+  `wede_global_admin`, `wede_tech_ops`, and `country_admin` are above-tenant roles — they do not belong to any specific organisation and **cannot dispatch teams**. Dispatch is always a tenant-level operation.
+</Info>
+
+Every API route enforces the minimum required permission. Attempting to access a route without the required permission returns `403 Forbidden` — the route does not exist from the caller's perspective.
 
 ### Cascade Principle
 
 - Wede Global Admin defines the full universe of available features
 - Each level receives a subset of the level above
-- Delegation is explicit - not included by default
-- Privilege escalation is structurally impossible - no level can grant what it does not hold
+- Delegation is explicit — not included by default
+- Privilege escalation is structurally impossible — no level can grant what it does not hold
 
 ---
 
@@ -142,7 +150,7 @@ All infrastructure is within the EU. Data does not leave the EU unless explicitl
 The EU Digital Operational Resilience Act (DORA) applies to financial entities and their ICT providers. Wede is designed as a DORA-aligned ICT layer:
 
 | DORA Requirement | Wede Implementation |
-|-----------------|---------------------|
+| --- | --- |
 | ICT risk management | Multi-channel fallback, zone connectivity monitoring, real-time alerts |
 | Incident reporting | Immutable audit log, webhook notifications, structured incident lifecycle |
 | Operational continuity | Offline-first SDK - operations continue without internet |
@@ -161,11 +169,11 @@ The EU Digital Operational Resilience Act (DORA) applies to financial entities a
 For healthcare deployments, Wede aligns with HIPAA Technical Safeguards (45 CFR § 164.312):
 
 | HIPAA Safeguard | Wede Implementation |
-|----------------|---------------------|
+| --- | --- |
 | Access Controls (§ 164.312(a)) | RBAC with unique user IDs, automatic session expiry, role-scoped API keys |
 | Audit Controls (§ 164.312(b)) | Session-level and operation-level audit logs, tamper-evident, exportable |
 | Integrity Controls (§ 164.312(c)) | SHA-256 per event, idempotency key, reconciliation without data loss |
-| Transmission Security (§ 164.312(e)) | TLS 1.2+ enforced, no unencrypted fallback paths |
+| Transmission Security (§ 164.312(e)) | TLS 1.2\+ enforced, no unencrypted fallback paths |
 | Authentication | JWT with token versioning, bcrypt passwords, brute force lockout |
 
 Wede does not store ePHI - payloads are opaque and pass through encrypted. This significantly reduces the compliance surface for healthcare integrators.
@@ -179,13 +187,13 @@ Wede does not store ePHI - payloads are opaque and pass through encrypted. This 
 For government and infrastructure deployments:
 
 | NIS2 Requirement | Wede Implementation |
-|-----------------|---------------------|
+| --- | --- |
 | Risk management | Multi-layer resilience, zone-level connectivity monitoring |
 | Incident handling | Structured lifecycle, webhook notifications, audit export |
 | Business continuity | Offline-first SDK, multi-channel fallback, data sync on reconnection |
 | Supply chain security | Private core repository, public SDK only - no proprietary algorithm exposure |
 | Access control | Cascading RBAC, session revocation, API key rotation |
-| Cryptography | TLS 1.2+, bcrypt, SHA-256, secrets in GCP Secret Manager |
+| Cryptography | TLS 1.2\+, bcrypt, SHA-256, secrets in GCP Secret Manager |
 | Data residency | Configurable per country and per zone - EU by default |
 
 ---
