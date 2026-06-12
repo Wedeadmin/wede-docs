@@ -1,0 +1,192 @@
+---
+title: "Compliance Report"
+description: "Operational and security compliance reporting for ISO 27001, DORA, GDPR and NIS2"
+icon: "chart-bar"
+---
+
+The Wede compliance report provides a daily breakdown of operational, security, and continuity data for audit and regulatory purposes. It is aligned with ISO 27001:2022, DORA, GDPR, and NIS2.
+
+## Endpoint
+
+```text
+GET /v1/compliance/report
+```
+
+Requires authentication. Accessible to `company_admin`, `company_tech`, `country_admin`, `wede_tech_ops`, and `wede_global_admin`.
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `from` | string (YYYY-MM-DD) | 30 days ago | Start of reporting period |
+| `to` | string (YYYY-MM-DD) | Today | End of reporting period |
+| `granularity` | string | `day` | Always `day` in current version |
+
+## Example
+
+```bash
+curl https://api.wede.pt/v1/compliance/report?from=2026-06-01&to=2026-06-30 \
+  -H "x-wede-api-key: wede_live_YOUR_KEY"
+```
+
+## Response Structure
+
+```json
+{
+  "meta": {
+    "from": "2026-06-01",
+    "to": "2026-06-30",
+    "granularity": "day",
+    "tenant_id": "9c145f7e-...",
+    "generated_at": "2026-06-12T08:30:37Z",
+    "standards": ["ISO 27001:2022", "DORA", "GDPR", "NIS2"]
+  },
+  "data": {
+    "events": [...],
+    "missions": [...],
+    "dispatch": [...],
+    "security": [...],
+    "offline_sync": [...],
+    "webhooks": [...],
+    "active_users": [...],
+    "audit_volume": [...]
+  }
+}
+```
+
+## Data Sections
+
+### events
+
+Operational events per day, grouped by vertical.
+
+| Field | Description |
+| --- | --- |
+| `day` | Date (YYYY-MM-DD) |
+| `vertical` | Operational vertical (e.g. healthcare) |
+| `total` | Total events created |
+| `completed` | Events with missions closed as COMPLETED |
+| `failed` | Events with missions closed as FAILED |
+| `pending` | Events awaiting dispatch or mission close |
+
+### missions
+
+Mission lifecycle per day.
+
+| Field | Description |
+| --- | --- |
+| `day` | Date |
+| `total` | Total missions created |
+| `completed` | Missions completed successfully |
+| `failed` | Missions closed as failed |
+| `avg_resolution_min` | Average time from creation to close (minutes) |
+
+### dispatch
+
+Dispatch operations per day.
+
+| Field | Description |
+| --- | --- |
+| `day` | Date |
+| `total_dispatches` | Total team dispatches |
+| `auto_dispatches` | Auto-dispatched by score engine |
+| `manual_dispatches` | Manually dispatched by operator |
+| `tier1` | Dispatches to Tier 1 teams (action-allocated, full capability) |
+| `tier2` | Dispatches to Tier 2 teams (action-allocated, partial) |
+| `tier3` | Dispatches to Tier 3 teams (vertical fallback) |
+
+### security
+
+Security events per day. Required for ISO 27001 and DORA audit trails.
+
+| Field | Description |
+| --- | --- |
+| `day` | Date |
+| `auth_failures` | Failed authentication attempts |
+| `successful_logins` | Successful logins |
+| `parser_violations` | Attempts to modify protected parser fields (rejected) |
+| `api_key_revocations` | API keys revoked |
+| `user_suspensions` | Users suspended |
+
+### offline\_sync
+
+Offline device sync activity per day. Required for DORA operational continuity evidence.
+
+| Field | Description |
+| --- | --- |
+| `day` | Date |
+| `devices_synced` | Distinct devices that synced |
+| `sync_operations` | Total sync operations received |
+| `processed` | Successfully processed offline dispatches |
+| `duplicates` | Duplicate operations rejected (idempotency) |
+
+### webhooks
+
+Webhook delivery per day.
+
+| Field | Description |
+| --- | --- |
+| `day` | Date |
+| `delivered` | Successfully delivered webhooks |
+| `failed` | Failed webhook deliveries |
+
+### active\_users
+
+User activity per day.
+
+| Field | Description |
+| --- | --- |
+| `day` | Date |
+| `active_users` | Distinct users who performed at least one action |
+| `total_actions` | Total actions performed by users |
+
+### audit\_volume
+
+Audit log statistics per day. The audit log is immutable — enforced by database trigger.
+
+| Field | Description |
+| --- | --- |
+| `day` | Date |
+| `total_entries` | Total immutable audit log entries |
+| `distinct_users` | Users who generated audit events |
+| `distinct_actions` | Distinct action types recorded |
+
+---
+
+## Export
+
+To download the report as a JSON file:
+
+```bash
+curl "https://api.wede.pt/v1/compliance/report/export?from=2026-06-01&to=2026-06-30" \
+  -H "x-wede-api-key: wede_live_YOUR_KEY" \
+  -o wede-compliance-report.json
+```
+
+---
+
+## Dashboard
+
+The compliance report is also available in the Wede dashboard at **app.wede.pt/dashboard/compliance**, with four tabs:
+
+- **Operations** — events, missions, dispatch by day
+- **Security** — auth failures, parser violations, webhook delivery
+- **Continuity** — offline sync activity (DORA evidence)
+- **Audit Volume** — immutable audit log statistics
+
+The dashboard supports date range selection and JSON export.
+
+---
+
+## Standards Alignment
+
+| Standard | Relevant sections |
+| --- | --- |
+| **ISO 27001:2022** | security (auth failures, violations), audit\_volume, active\_users |
+| **DORA** | offline\_sync (continuity evidence), dispatch (operational resilience) |
+| **GDPR** | audit\_volume (access log), active\_users (data subject activity) |
+| **NIS2** | security, missions (incident response time), offline\_sync |
+
+<Note>
+  The audit log underlying this report is immutable by construction. Entries are written by a PostgreSQL BEFORE UPDATE/DELETE trigger that cannot be bypassed by application code, not even by wede\_global\_admin. This provides tamper-evident evidence for regulatory audits.
+</Note>

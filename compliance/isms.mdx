@@ -1,0 +1,103 @@
+---
+title: "ISMS"
+description: "Information Security Management System — ISO/IEC 27001:2022 aligned policy overview"
+icon: "shield-halved"
+---
+
+Wede Technology maintains a formal Information Security Management System (ISMS) aligned with ISO/IEC 27001:2022. This page summarises the key controls and posture. The full policy document (WEDE-ISMS-001) is available to enterprise customers and auditors on request.
+
+## Scope
+
+The ISMS covers:
+
+- Wede API platform (GCP Cloud Run, europe-west1)
+- Wede dashboard (Vercel, app.wede.pt)
+- All SDKs (JS/TS, Python, React Native, Swift, Android)
+- PostgreSQL 16 databases (Cloud SQL, europe-west1)
+- All source code repositories (GitHub, Wedeadmin organisation)
+- All customer (Tenant) data processed by the platform
+
+## Security Controls Summary
+
+### Access Control
+
+- 7-level RBAC enforced at database and middleware layers — privilege escalation is structurally impossible
+- JWT tokens expire after 8 hours with immediate revocation capability
+- API keys stored as bcrypt hashes — plaintext never retained
+- Brute force protection with progressive lockout
+
+### Cryptography
+
+- TLS 1.2\+ on all communications — no plaintext fallback
+- AES-256 encryption at rest (GCP Cloud SQL)
+- All secrets managed via GCP Secret Manager — never in code or environment variables
+- Device offline queue encrypted by operating system keychain/keystore
+
+### Audit and Logging
+
+- Immutable audit log enforced by PostgreSQL BEFORE UPDATE/DELETE trigger
+- Every operation logged with user identity, action, entity, NTP timestamp, and IP
+- Log cannot be modified or deleted — not even by wede\_global\_admin
+- Minimum 5-year retention for compliance purposes
+- Available via API: `GET /v1/audit` and `GET /v1/compliance/report`
+
+### Monitoring
+
+- GCP Cloud Monitoring with 4 active alerts (5xx rate, latency, instances, memory)
+- All alerts routed to [security@wede.pt](mailto:security@wede.pt)
+- GitHub Dependabot for dependency vulnerability scanning
+- Continuous E2E test suite (57 tests, 0 failures) running against staging on every commit
+
+### Change Management
+
+- All changes via GitHub with mandatory TypeScript compilation check
+- CI/CD pipeline (GitHub Actions) with staging before production
+- Database migrations applied in sequence — state tracked in schema\_migrations
+
+### Business Continuity
+
+- 99.9% monthly API availability objective
+- Offline-first SDK architecture — operations continue without internet
+- Automatic channel fallback: Internet → SMS A2P → Voice
+- GCP Cloud Run auto-scaling and zero-downtime deployments
+
+## Compliance Framework
+
+| Standard | Status | Notes |
+| --- | --- | --- |
+| ISO/IEC 27001:2022 | In progress | ISMS established. Certification audit planned. |
+| GDPR (EU) 2016/679 | Implemented | Data in EU, DPA with sub-processors, Privacy Policy published |
+| DORA (EU) 2022/2554 | Aligned | Audit trail, incident classification, operational continuity |
+| NIS2 Directive | Aligned | Security controls, incident reporting framework |
+| HIPAA | Planned | Opaque payload architecture. BAA planned before first US healthcare customer. |
+
+## Sub-processors
+
+| Sub-processor | Service | Certifications |
+| --- | --- | --- |
+| Google Cloud Platform | Infrastructure, database, secrets | ISO 27001, SOC 2 Type II |
+| Resend | Transactional email | SOC 2 Type II |
+| Twilio | SMS fallback channel | ISO 27001, SOC 2 |
+| Stripe | Payment processing | PCI DSS Level 1, SOC 2 |
+| Vercel | Dashboard hosting | SOC 2 Type II |
+
+## Known Gaps
+
+Wede is an early-stage company. The following gaps are documented and under active remediation:
+
+- DPO not yet formally designated
+- External penetration test not yet completed (CREST/CHECK accredited provider planned)
+- ISO 27001 formal certification not yet obtained
+- HIPAA BAA not yet established
+
+## Contact
+
+For security enquiries, responsible disclosure, or audit documentation requests:
+
+- Security: [security@wede.pt](mailto:security@wede.pt)
+- Privacy: [privacy@wede.pt](mailto:privacy@wede.pt)
+- General: [geral@wede.pt](mailto:geral@wede.pt)
+
+<Note>
+  The full ISMS Policy document (WEDE-ISMS-001, 16 sections, ISO/IEC 27001:2022 Annex A mapped) is available to enterprise customers and auditors on request at [security@wede.pt](mailto:security@wede.pt).
+</Note>
