@@ -182,6 +182,23 @@ Wede does not store ePHI - payloads are opaque and pass through encrypted. This 
   The 2025 proposed HIPAA Security Rule updates (expected final May 2026) make encryption at rest and in transit, MFA, and audit controls mandatory without exception. Wede meets all proposed requirements.
 </Note>
 
+### Banking - CBUAE (UAE)
+
+For UAE licensed financial institutions (LFIs), Wede aligns with the CBUAE Operational Risk Regulation and Technology Risk Standards (Articles 12 and 13 of the CBUAE Rulebook):
+
+| CBUAE Requirement | Wede Implementation |
+| --- | --- |
+| Business continuity plans | Offline-first SDK — critical functions maintained without internet |
+| Disaster recovery | Multi-channel fallback, automatic channel transition, zone monitoring |
+| Operational risk event notification (24h) | Immutable audit log with timestamp, exportable for regulatory reporting |
+| Technology risk management framework | Cryptographic traceability, integrity hash per event, RBAC |
+| IT governance and cyber resilience | TLS 1.2+, bcrypt, SHA-256, GCP Secret Manager, Cloud Run isolation |
+| Critical business function continuity | Offline queue with reconciliation — no data loss during outages |
+
+<Note>
+  The CBUAE Operational Risk Regulation requires banks to notify the Central Bank within 24 hours of any event triggering business continuity plans. Wede's immutable audit trail with structured timestamps supports this reporting obligation.
+</Note>
+
 ### Government and Critical Infrastructure - NIS2
 
 For government and infrastructure deployments:
