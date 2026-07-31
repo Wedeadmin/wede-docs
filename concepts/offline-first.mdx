@@ -23,10 +23,9 @@ Wede maintains multiple delivery channels for every operational zone. When the p
 | **REST Compressed** | Optimised low-bandwidth HTTPS | Degraded internet |
 | **Structured Protocols** | Compact structured transmission via SMS | When internet is unavailable |
 | **Voice** | Voice call delivery | Critical alerts, no data |
-
-<Note>
-  LoRa, satellite, and edge processing are on the roadmap. Current production channels are REST Full, REST Compressed, Structured Protocols (SMS), and Voice.
-</Note>
+| **LoRa** | Long-range IoT radio — up to 15 km range | Remote areas, rural infrastructure |
+| **Satellite** | Global satellite coverage via third-party integration | Extreme environments, conflict zones, no cellular |
+| **Edge** | Local edge processing — zero external dependency | Air-gapped environments, ultra-low latency |
 
 Channel selection is automatic and transparent. Your API call stays the same regardless of which channel delivers the event.
 
@@ -41,7 +40,7 @@ Each zone has an independent connectivity state, monitored in real-time:
 | **online** | Full connectivity | REST Full, REST Compressed |
 | **degraded** | Reduced connectivity | REST Compressed, Structured Protocols |
 | **sms\_only** | Internet unavailable | Structured Protocols, Voice |
-| **offline** | All external channels unavailable | Queue mode (sync on reconnect) |
+| **offline** | All internet channels unavailable | LoRa, Satellite, Edge, Queue mode (sync on reconnect) |
 
 Zone states are visible in real-time in your [dashboard](https://app.wede.pt/dashboard/zones) and via the API.
 
