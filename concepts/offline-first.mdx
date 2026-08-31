@@ -17,15 +17,18 @@ This is what offline-first means: not a fallback mode, but the default architect
 
 Wede maintains multiple delivery channels for every operational zone. When the primary channel degrades, the next channel activates automatically — transparently, without any changes to your integration.
 
-| Channel | Description | Best For |
-| --- | --- | --- |
-| **REST Full** | Standard HTTPS — primary channel | Normal operations |
-| **REST Compressed** | Optimised low-bandwidth HTTPS | Degraded internet |
-| **Structured Protocols** | Compact structured transmission via SMS | When internet is unavailable |
-| **Voice** | Voice call delivery | Critical alerts, no data |
+| Channel | Description | Best For | Status |
+| --- | --- | --- | --- |
+| **REST Full** | Standard HTTPS — primary channel | Normal operations | Live |
+| **REST Compressed** | Optimised low-bandwidth HTTPS | Degraded internet | Live |
+| **Structured Protocols** | Compact structured transmission via SMS | When internet is unavailable | Live |
+| **Voice** | Voice call delivery | Critical alerts, no data | In pilot rollout |
+| **LoRa** | Long-range IoT radio — up to 15 km range | Remote areas, rural infrastructure | Roadmap |
+| **Satellite** | Global satellite coverage via third-party integration | Extreme environments, conflict zones, no cellular | Roadmap |
+| **Edge** | Local edge processing — zero external dependency | Air-gapped environments, ultra-low latency | Roadmap |
 
 <Note>
-  LoRa, satellite, and edge processing are on the roadmap. Voice delivery is built and in pilot rollout with our voice provider. Current production channels are REST Full, REST Compressed, and Structured Protocols (SMS).
+  Channels marked *Roadmap* are architecture-ready (schema, pricing and provider integration layer in place) but do not yet carry production traffic. Voice is built and in pilot rollout with our voice provider. Structured Protocols (SMS) is the only fallback channel with a live delivery connector today.
 </Note>
 
 Channel selection is automatic and transparent. Your API call stays the same regardless of which channel delivers the event.
@@ -40,8 +43,8 @@ Each zone has an independent connectivity state, monitored in real-time:
 | --- | --- | --- |
 | **online** | Full connectivity | REST Full, REST Compressed |
 | **degraded** | Reduced connectivity | REST Compressed, Structured Protocols |
-| **sms\_only** | Internet unavailable | Structured Protocols (Voice in pilot rollout) |
-| **offline** | All external channels unavailable | Queue mode (sync on reconnect) |
+| **sms\_only** | Internet unavailable | Structured Protocols (SMS) live; Voice in pilot rollout |
+| **offline** | All internet channels unavailable | Events queue locally with guaranteed sync on reconnection; LoRa, Satellite and Edge delivery are on our roadmap |
 
 Zone states are visible in real-time in your [dashboard](https://app.wede.pt/dashboard/zones) and via the API.
 
