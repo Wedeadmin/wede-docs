@@ -17,8 +17,8 @@ Each zone operates in one of four connectivity states:
 |-------|---------|
 | **online** | Full internet connectivity - primary channel active |
 | **degraded** | Reduced connectivity - optimised routing active |
-| **sms_only** | Internet unavailable - Structured protocols and voice channels active |
-| **offline** | All external channels unavailable - LoRa, satellite and edge active |
+| **sms_only** | Internet unavailable - structured protocols active, extended fallback engages automatically |
+| **offline** | All external channels unavailable - events queue locally with guaranteed sync on reconnection |
 
 State transitions are detected automatically by Wede based on real-time monitoring. Your integration does not need to handle state changes - Wede routes transparently.
 

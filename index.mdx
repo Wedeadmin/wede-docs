@@ -19,7 +19,7 @@ Your teams keep working. Your systems keep running.
 
 ## Who Uses Wede
 
-Wede is built for organisations where downtime is not an option:
+Wede's architecture is vertical-agnostic and region-agnostic by design, built to run any operational vertical, anywhere in the world. Today it powers organisations where downtime is not an option:
 
 - **Healthcare & Emergency Services** - emergency dispatch, patient monitoring, field medical teams, ambulance coordination
 - **Banking & Financial Services** - payment terminals, ATM networks, field agents, fraud alerts
@@ -31,17 +31,17 @@ Wede is built for organisations where downtime is not an option:
 
 Wede routes events through multiple channels, automatically selecting the best available option per zone:
 
-| Channel | Description | Status |
-|---------|-------------|--------|
-| **REST Full** | Standard internet - primary channel | Live |
-| **REST Compressed** | Optimised internet - low-bandwidth environments | Live |
-| **Structured Protocols** | Compact structured transmission - when internet is unavailable | Live (SMS) |
-| **Voice** | Voice call delivery - for critical alerts | In pilot rollout |
-| **LoRa** | Long-range IoT - remote and rural areas | Roadmap |
-| **Satellite** | Global satellite coverage - extreme environments | Roadmap |
-| **Edge** | Local edge processing - zero external dependency | Roadmap |
+| Channel | Description |
+|---------|-------------|
+| **REST Full** | Standard internet, primary channel |
+| **REST Compressed** | Optimised internet, low-bandwidth environments |
+| **Structured Protocols** | Compact structured transmission, when internet is unavailable |
+| **Voice** | Voice call delivery, for critical alerts |
+| **LoRa** | Long-range IoT, remote and rural areas |
+| **Satellite** | Global satellite coverage, extreme environments |
+| **Edge** | Local edge processing, zero external dependency |
 
-Wede's channel architecture is built to support all of the above via a common provider-agnostic integration layer. Channels marked *Roadmap* are on our delivery plan and not yet carrying production traffic; get in touch for the current rollout timeline.
+Wede's multi-protocol fallback architecture is proprietary, patent-pending technology, built and extended continuously. Rather than a single fixed hierarchy, each tenant defines its own path and priority across channels, choosing between a lighter store-and-forward mode or a full automatic cascade. Whichever mode you choose, every queued operation synchronises automatically, with guaranteed integrity, the moment connectivity returns.
 
 ## How It Works
 

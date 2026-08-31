@@ -15,13 +15,18 @@ State changes are detected automatically and trigger channel switching without a
 |-------|-------------|--------|
 | **online** | Full internet connectivity | Primary REST channel active |
 | **degraded** | Reduced bandwidth or reliability | Compressed REST, optimised routing |
-| **sms_only** | Internet unavailable | Structured protocols (SMS) active; voice fallback is in pilot rollout |
-| **offline** | All external channels down | Events queue locally with guaranteed sync on reconnection; LoRa, satellite and edge delivery are on our roadmap |
+| **sms_only** | Internet unavailable | Structured protocols active; additional fallback protocols engage automatically per plan configuration |
+| **offline** | All external channels down | Events queue locally with guaranteed sync on reconnection |
 
-## Channel Hierarchy
+## Continuity Modes
 
-When a zone's connectivity degrades, Wede activates the next available channel automatically:
-The channel used for each event delivery is included in the API response and webhook payload, giving you full visibility of how each event was delivered.
+Every Wede plan operates in one of two continuity modes, configured per tenant:
+
+**Automatic cascade.** When a zone's connectivity degrades, Wede transitions across channels automatically, in the priority order you define. There is no single hierarchy imposed by Wede: you choose which channels are eligible for your traffic and in what order they are tried.
+
+**Store-and-forward.** For tenants who do not need active channel switching, events queue locally and deliver once connectivity returns, without attempting intermediate fallback channels.
+
+Both modes share the same guarantee: every queued event synchronises automatically and exactly once, the moment connectivity is restored, with idempotency enforced at the device and sequence level. The channel used for each event delivery is included in the API response and webhook payload, giving you full visibility of how each event was delivered.
 
 ## Reporting Connectivity
 
