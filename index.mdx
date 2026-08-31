@@ -31,15 +31,17 @@ Wede is built for organisations where downtime is not an option:
 
 Wede routes events through multiple channels, automatically selecting the best available option per zone:
 
-| Channel | Description |
-|---------|-------------|
-| **REST Full** | Standard internet - primary channel |
-| **REST Compressed** | Optimised internet - low-bandwidth environments |
-| **Structured Protocols** | Compact structured transmission - when internet is unavailable |
-| **Voice** | Voice call delivery - for critical alerts |
-| **LoRa** | Long-range IoT - remote and rural areas |
-| **Satellite** | Global satellite coverage - extreme environments |
-| **Edge** | Local edge processing - zero external dependency |
+| Channel | Description | Status |
+|---------|-------------|--------|
+| **REST Full** | Standard internet - primary channel | Live |
+| **REST Compressed** | Optimised internet - low-bandwidth environments | Live |
+| **Structured Protocols** | Compact structured transmission - when internet is unavailable | Live (SMS) |
+| **Voice** | Voice call delivery - for critical alerts | In pilot rollout |
+| **LoRa** | Long-range IoT - remote and rural areas | Roadmap |
+| **Satellite** | Global satellite coverage - extreme environments | Roadmap |
+| **Edge** | Local edge processing - zero external dependency | Roadmap |
+
+Wede's channel architecture is built to support all of the above via a common provider-agnostic integration layer. Channels marked *Roadmap* are on our delivery plan and not yet carrying production traffic; get in touch for the current rollout timeline.
 
 ## How It Works
 

@@ -15,8 +15,8 @@ State changes are detected automatically and trigger channel switching without a
 |-------|-------------|--------|
 | **online** | Full internet connectivity | Primary REST channel active |
 | **degraded** | Reduced bandwidth or reliability | Compressed REST, optimised routing |
-| **sms_only** | Internet unavailable | Structured protocols and voice delivery active |
-| **offline** | All external channels down | LoRa, satellite, edge processing |
+| **sms_only** | Internet unavailable | Structured protocols (SMS) active; voice fallback is in pilot rollout |
+| **offline** | All external channels down | Events queue locally with guaranteed sync on reconnection; LoRa, satellite and edge delivery are on our roadmap |
 
 ## Channel Hierarchy
 
