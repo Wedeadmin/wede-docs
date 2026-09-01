@@ -1,0 +1,19 @@
+---
+title: Plans
+description: How Wede plans and the communications model work
+---
+
+## Plans
+
+Wede plans start with a Pilot or Store & Forward foundation, then scale through Starter, Growth, and Mission-Critical tiers, each with progressively more customisable integrations, channel priority control, and zone capacity.
+
+The plan a tenant is on determines its continuity mode, the number of zones it can operate, and how many channel integrations it can configure. See [Continuity Modes](/concepts/connectivity) for the difference between store-and-forward and automatic cascade.
+
+## Communications model
+
+Wede supports two ways to access communications channels:
+
+- **Bulk access.** Wede provides bulk access to its communications network across channels, so you never have to negotiate with individual providers yourself.
+- **Direct negotiation.** Your organisation can negotiate directly with your own communications providers, telecom operators, satellite carriers, or LoRa network operators, and connect them through Wede. In this model, a valid Wede licence is all that's required, with no communication cost passed through Wede.
+
+Both models run through the same integration layer and the same fallback architecture, your integration code does not change based on which model you choose.

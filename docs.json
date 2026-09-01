@@ -31,6 +31,7 @@
               "concepts/sync",
               "concepts/connectivity",
               "concepts/verticals",
+            "concepts/plans",
               "concepts/security",
               "concepts/parsers",
               "concepts/score-engine",
