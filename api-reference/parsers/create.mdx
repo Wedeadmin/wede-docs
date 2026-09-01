@@ -26,13 +26,13 @@ Requires `parsers:write` permission.
 |-------|------|----------|-------------|
 | `id` | string | Yes | Unique field identifier |
 | `name` | string | Yes | Field name |
-| `sms_code` | string | Yes | Short code for SMS encoding (max 8 chars) |
+| `sms_code` | string | Yes | Short code for structured protocol encoding (max 8 chars) |
 | `type` | string | Yes | string, number, boolean, gps, text, timestamp, enum, phone, email, address, hardware_id |
 | `required` | boolean | Yes | Whether the field is mandatory |
 | `enabled` | boolean | Yes | Whether the field is active |
-| `offline_capable` | boolean | Yes | Whether the field is transmitted offline via SMS |
+| `offline_capable` | boolean | Yes | Whether the field is transmitted via the offline structured protocol |
 | `section` | string | Yes | core, location, human, hardware, team, custom |
-| `max_bytes` | number | Yes | Maximum bytes for SMS encoding (1-160) |
+| `max_bytes` | number | Yes | Maximum bytes for structured protocol encoding (1-160) |
 | `enum_values` | array | No | Required when type is enum |
 | `legal` | boolean | No | Marks the field as containing PII |
 

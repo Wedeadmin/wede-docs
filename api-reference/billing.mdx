@@ -77,11 +77,11 @@ Every operation debits from the tenant annual plan:
 | Operation | Billed as |
 |-----------|-----------|
 | Event via internet | 1 event |
-| Event via SMS | 1 event + SMS cost |
+| Event via structured protocol | 1 event + protocol cost |
 | Event via voice | 1 event + voice cost |
 | Dispatch | 1 dispatch |
 | Mission created | 1 mission |
-| Location update offline | 1 SMS unit |
+| Location update offline | 1 structured protocol unit |
 
 When the plan limit is reached, additional usage is billed at the overage rate defined in `channel_costs`. Tenants with no plan are notified and must upgrade or add credit to continue.
 

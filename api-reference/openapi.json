@@ -3,7 +3,7 @@
   "info": {
     "title": "Wede Resilience API",
     "version": "1.1.0",
-    "description": "Wede Resilience API — offline-first operational continuity platform.\n\nWede intercepts, normalises, and routes every operation through the most appropriate channel transparently. Your integration stays the same regardless of whether delivery happens over HTTPS, SMS, LoRa, or satellite.\n\n**Version:** v1.1.0\n**Patent:** INPI PT 120488\n**Contact:** api@wede.pt\n\n## Fallback levels\n| Level | Condition | Protocol |\n|-------|-----------|----------|\n| 1 | 4G/5G | REST/JSON full |\n| 2 | 3G degraded | REST/JSON compressed (gzip) |\n| 3 | 2G/EDGE | Proprietary structured SMS |\n| 4 | GSM only | Emergency SMS + voice |\n\n## Authentication\nAll requests require `X-Wede-API-Key` header or `Authorization: Bearer <jwt>`.\n",
+    "description": "Wede Resilience API — offline-first operational continuity platform.\n\nWede intercepts, normalises, and routes every operation through the most appropriate channel transparently. Your integration stays the same regardless of whether delivery happens over HTTPS, a structured fallback protocol, LoRa, or satellite.\n\n**Version:** v1.1.0\n**Contact:** api@wede.pt\n\n## Fallback levels\n| Level | Condition | Protocol |\n|-------|-----------|----------|\n| 1 | 4G/5G | REST/JSON full |\n| 2 | 3G degraded | REST/JSON compressed (gzip) |\n| 3 | 2G/EDGE | Proprietary structured protocol |\n| 4 | GSM only | Emergency structured protocol + voice |\n\n## Authentication\nAll requests require `X-Wede-API-Key` header or `Authorization: Bearer <jwt>`.\n",
     "contact": {
       "name": "Wede API Support",
       "email": "api@wede.pt",
@@ -1812,7 +1812,7 @@
               },
               "examples": {
                 "simulate_sms_only": {
-                  "summary": "Simular modo SMS apenas",
+                  "summary": "Simular modo protocolo estruturado apenas",
                   "value": {
                     "zone_id": "zone_test_01",
                     "connectivity_state": "sms_only",

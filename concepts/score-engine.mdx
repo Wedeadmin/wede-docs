@@ -5,21 +5,9 @@ description: "How wede ranks teams for dispatch using proximity, equipment and c
 
 ## Overview
 
-The wede score engine ranks available teams for a given event. It runs identically on the API (online) and on the SDK (offline) - no server required, no external dependencies, pure TypeScript.
+The wede score engine ranks available teams for a given event, combining proximity, equipment match, member availability, current load, and zone geofence into a single ranking. It runs identically on the API (online) and on the SDK (offline) - no server required, no external dependencies.
 
-Lower score is better. The top-ranked team is marked as `recommended`.
-
-## Formula
-
-```text
-finalScore = 0.35 × travel_score
-           + 0.25 × capability_score
-           + 0.20 × member_score
-           + 0.10 × load_penalty
-           + 0.10 × geofence_penalty
-```
-
-Lower score is better. The top-ranked team is marked `recommended: true`.
+Teams are ranked from best match to worst. The top-ranked team is marked as `recommended`.
 
 ## Tier System
 
@@ -31,52 +19,30 @@ Teams are ranked within three dispatch tiers before scoring:
 | **Tier 2** | Allocated to action, missing some capabilities | Acceptable fallback |
 | **Tier 3** | Same vertical, not allocated to action | Last resort — cross-capability |
 
-The score engine ranks within each tier. Tier 1 teams are always preferred over Tier 2, regardless of score.
+Tier 1 teams are always preferred over Tier 2, regardless of ranking within tier.
 
-## Components
+## What the ranking considers
 
-**travel\_score** - Haversine great-circle distance between the team position and the event, normalised to a 30-minute ETA at 42 km/h urban average. Capped at 1.0.
+- **Proximity** - great-circle distance between the team's current position and the event, weighted toward estimated arrival time
+- **Capability match** - how closely the team's equipment matches what the event requires
+- **Member availability** - how many of the team's members are currently available
+- **Current load** - teams already on a mission are ranked lower
+- **Zone geofence** - teams outside the event's zone boundary are ranked lower, but not excluded; cross-zone escalation is always possible
 
-**capability\_score** - Equipment match ratio. If the event requires specific equipment, this is the fraction of required items the team has in `operational` status. Lower is better - a perfect match scores 0.0.
-
-**member\_score** - Member availability ratio. Fraction of members with `status: available`. Lower means more available members.
-
-**load\_penalty** - 0.5 if the team is currently `on_mission`, 0 otherwise.
-
-**geofence\_penalty** - 0.2 if the event GPS is outside the team's zone boundary polygon, 0 otherwise. Teams outside their zone are penalised but not excluded - cross-zone escalation remains possible.
+The exact ranking algorithm, including its weighting, is proprietary, patent-pending technology.
 
 ## Position resolution
 
-The engine resolves the team position in order:
-
-1. **Fresh GPS** - member with `status: available`, `last_seen` within 10 minutes
-2. **Any GPS** - most recent GPS from any member
-3. **Zone center** - fallback to the team's zone `lat_center`, `lng_center`
-4. **Unknown** - no position data available - distance scored as 0
+The engine resolves each team's position from the freshest source available - recent member GPS, any known member GPS, or the team's zone center, in that order. A team without any position data can still be scored and dispatched.
 
 ## Fallback channel
 
-Based on ETA and event priority, the engine recommends a communication channel:
-
-| Condition | Channel |
-| --- | --- |
-| P1\_CRITICAL or CRITICAL, ETA \> 5 min | Structured Protocol |
-| ETA \> 15 min | Structured Protocol |
-| All other cases | Internet |
+Based on estimated time to arrival and event priority, the engine recommends the appropriate delivery channel for the dispatch notification, favouring a structured fallback protocol for time-critical or long-ETA events, and the primary channel otherwise.
 
 ## Offline operation
 
-The score engine is designed to run without connectivity. The SDK stores:
-
-- Team positions (`lat`, `lng`, `last_seen`)
-- Zone boundaries (polygon coordinates)
-- Equipment lists
-- Catalog actions (which teams respond to which action types)
+The score engine is designed to run without connectivity. The SDK stores team positions, zone boundaries, equipment lists, and catalog actions locally.
 
 On offline dispatch, the SDK scores locally and queues the dispatch for sync when connectivity returns. The result is always consistent with what the API would produce.
 
-All five SDKs (JS, React Native, Android, Swift, Python) include the identical score engine implementation — zero dependencies, no server call required.
-
-## Patent
-
-The score engine algorithm — including proximity scoring, geofencing via point-in-polygon, and offline dispatch queue with cryptographic integrity — is covered by patent application INPI 120488 (Portugal), pending.
+All five SDKs (JS, React Native, Android, Swift, Python) include the identical score engine implementation - zero dependencies, no server call required.
