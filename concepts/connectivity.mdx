@@ -26,7 +26,7 @@ Every Wede plan operates in one of two continuity modes, configured per tenant:
 
 **Store-and-forward.** For tenants who do not need active channel switching, events queue locally and deliver once connectivity returns, without attempting intermediate fallback channels.
 
-Both modes share the same guarantee: every queued event synchronises automatically and exactly once, the moment connectivity is restored, with idempotency enforced at the device and sequence level. The channel used for each event delivery is included in the API response and webhook payload, giving you full visibility of how each event was delivered.
+Both modes share the same guarantee: every queued event synchronises automatically and exactly once, the moment connectivity is restored - but the two modes identify "the same operation twice" differently. Automatic cascade identifies each queued item by its device and sequence number. Store-and-forward identifies each event by a single-use, cryptographically signed reconciliation token, bound to a hash of the event's payload at issue time: redeeming the same token twice is rejected, and a payload that no longer matches its original hash is rejected and flagged for review. The channel used for each event delivery is included in the API response and webhook payload, giving you full visibility of how each event was delivered.
 
 ## Reporting Connectivity
 
